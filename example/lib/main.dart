@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:swetrix/swetrix.dart';
+import 'package:swetrix_flutter/swetrix.dart';
 
 void main() {
   runApp(const SwetrixExampleApp());

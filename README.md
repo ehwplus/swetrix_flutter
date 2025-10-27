@@ -31,7 +31,7 @@ flutter pub get
 ## Quick start
 
 ```dart
-import 'package:swetrix/swetrix.dart';
+import 'package:swetrix_flutter/swetrix.dart';
 
 final swetrix = Swetrix(
   projectId: 'YOUR_PROJECT_ID',

@@ -184,7 +184,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  swetrix:
+  swetrix_flutter:
     dependency: "direct main"
     description:
       path: ".."
