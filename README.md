@@ -19,7 +19,7 @@ Add the package to your Flutter (or pure Dart) project:
 dependencies:
   swetrix_flutter:
     git:
-      url: https://github.com/Swetrix/swetrix-dart.git
+      url: https://github.com/ehwplus/swetrix_flutter.git
 ```
 
 Then install dependencies:
