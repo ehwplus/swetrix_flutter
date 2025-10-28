@@ -19,9 +19,16 @@ Add the package to your Flutter (or pure Dart) project:
 
 ```yaml
 dependencies:
+  swetrix_flutter: ">=0.1.0"
+```
+
+or
+
+```yaml
+dependencies:
   swetrix_flutter:
     git:
-      url: https://github.com/Swetrix/swetrix-flutter.git
+      url: https://github.com/ehwplus/swetrix_flutter.git
 ```
 
 Then install dependencies:
@@ -35,18 +42,16 @@ flutter pub get
 ```dart
 import 'package:swetrix_flutter/swetrix_flutter.dart';
 
-Future<String?> resolveClientIp() async {
-  // Swap this for your preferred service or on-premise endpoint.
-  return '203.0.113.42';
-}
-
 final swetrix = SwetrixFlutterClient(
   projectId: 'YOUR_PROJECT_ID',
-  clientIpResolver: resolveClientIp,
+  options: SwetrixOptions(apiUrl: Uri.parse('https://analytics.api.ehwplus.com/log')),
 );
 
 Future<void> trackLaunch() async {
-  await swetrix.trackPageView(page: '/home');
+  await swetrix.trackPageView(
+    page: '/home',
+    context: SwetrixContext(metadata: {'uiMode': brightness.name}),
+  );
   await swetrix.trackEvent(
     'AppLaunch',
     metadata: const {'build': 42, 'channel': 'stable'},

@@ -1,4 +1,4 @@
-## 0.1.0
+## 0.1.1
 
 - Initial public release of the Swetrix Events API client for Flutter/Dart.
 - Added `SwetrixFlutterClient` helper that auto-collects OS, OS version, device type, language, country, browser (web), app version, and build number.
