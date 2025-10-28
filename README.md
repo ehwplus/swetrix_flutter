@@ -5,9 +5,11 @@ Use it to track page views, custom events, heartbeats, and application errors fr
 
 ## Features
 
-- Zero-dependency HTTP client built on top of `package:http`
-- Page view and custom event helpers with metadata merging
-- Error tracking support aligned with Swetrix dashboards
+- HTTP client built on top of `package:http` with no runtime platform code
+- Automatic enrichment of events with OS, OS version, locale, country, device type, browser (web), app version & build number
+- Visitor identifier persisted across sessions to keep repeat users deduplicated
+- Automatically injects `User-Agent` and `X-Client-IP-Address` headers (configurable resolver) so Swetrix can identify unique visitors reliably
+- Error tracking support aligned with the Swetrix dashboard
 - Heartbeat scheduler to keep live visitor counters up to date
 - Works with the production cloud API or self-hosted deployments
 
@@ -19,7 +21,7 @@ Add the package to your Flutter (or pure Dart) project:
 dependencies:
   swetrix_flutter:
     git:
-      url: https://github.com/ehwplus/swetrix_flutter.git
+      url: https://github.com/Swetrix/swetrix-flutter.git
 ```
 
 Then install dependencies:
@@ -31,20 +33,16 @@ flutter pub get
 ## Quick start
 
 ```dart
-import 'package:swetrix_flutter/swetrix.dart';
+import 'package:swetrix_flutter/swetrix_flutter.dart';
 
-final swetrix = Swetrix(
+Future<String?> resolveClientIp() async {
+  // Swap this for your preferred service or on-premise endpoint.
+  return '203.0.113.42';
+}
+
+final swetrix = SwetrixFlutterClient(
   projectId: 'YOUR_PROJECT_ID',
-  options: SwetrixOptions(
-    defaultContext: const SwetrixContext(
-      locale: 'en-US',
-      timezone: 'Europe/Berlin',
-    ),
-    requestOptions: const SwetrixRequestOptions(
-      userAgent: 'MyFlutterApp/1.0.0',
-      clientIpAddress: '198.51.100.18',
-    ),
-  ),
+  clientIpResolver: resolveClientIp,
 );
 
 Future<void> trackLaunch() async {
@@ -67,15 +65,25 @@ Future<void> reportError(Object error, StackTrace stack) async {
 }
 ```
 
-> **Important:** To keep Swetrix unique visitor counts accurate you should supply the `User-Agent` and `X-Client-IP-Address` headers.  
-> See the [Events API reference](https://docs.swetrix.com/events-api) for details.
+The `SwetrixFlutterClient` automatically:
+
+- Collects OS, OS version, device classification (mobile/tablet/desktop), language, country and—on web builds—the active browser name.
+- Pulls the app version and build number via `package_info_plus`.
+- Persists a per-project visitor identifier in `SharedPreferences` so every user counts only once.
+- Adds the visitor ID and device metadata to all page views, events, and error payloads, while marking the first page view as `unique`.
+
+> **Important:** When using the lower-level `Swetrix` client directly you must provide accurate `User-Agent` and `X-Client-IP-Address` headers yourself to keep unique visitor metrics meaningful. See the [Events API reference](https://docs.swetrix.com/events-api) for full details.
+
+By default the Flutter helper performs a single request to `https://api.ipify.org` to determine the public IP address. You can supply your own resolver if you prefer a different service.
 
 ## Advanced usage
 
-- **Self-hosted API** – Pass your custom endpoint via `SwetrixOptions(apiUrl: Uri.parse('https://your-host/log'))`.
-- **Default metadata** – Provide `SwetrixContext.metadata` to attach key/value pairs to all page views.
-- **Heartbeats** – Call `startHeartbeat()` to schedule a keep-alive timer and `stopHeartbeat()` on teardown.
+- **Self-hosted API** – Override the endpoint via `SwetrixOptions(apiUrl: Uri.parse('https://your-host/log'))`.
+- **Additional metadata** – Supply `context` or `metadata` overrides when calling `trackPageView` / `trackEvent` to extend the automatically collected fields.
+- **Heartbeats** – Use `startHeartbeat()` / `stopHeartbeat()` to keep live visitor counters fresh.
 - **Custom headers per call** – Supply `SwetrixRequestOptions` when sending individual events.
+- **Custom client IP logic** – Pass `clientIpResolver` when constructing `SwetrixFlutterClient` to plug in your own IP detection (e.g. hitting an on-premise endpoint).
+- **Custom user agent** – Provide the `userAgent` parameter if you prefer to send a hand-crafted header instead of the generated one.
 
 ## Example application
 
@@ -93,4 +101,4 @@ flutter run
 - Events API reference: <https://docs.swetrix.com/events-api>
 - Swetrix integrations overview: <https://docs.swetrix.com/integrations>
 
-Bug reports and feature requests are welcome via the [issue tracker](https://github.com/Swetrix/swetrix-dart/issues).
+Bug reports and feature requests are welcome via the [issue tracker](https://github.com/Swetrix/swetrix-flutter/issues).

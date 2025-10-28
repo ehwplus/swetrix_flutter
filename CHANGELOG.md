@@ -1,6 +1,8 @@
 ## 0.1.0
 
 - Initial public release of the Swetrix Events API client for Flutter/Dart.
-- Supports page view, custom event, error, and heartbeat tracking.
-- Includes configurable headers, default context metadata, and self-hosted API support.
-- Ships with unit tests and an example Flutter application.
+- Added `SwetrixFlutterClient` helper that auto-collects OS, OS version, device type, language, country, browser (web), app version, and build number.
+- Automatically injects `User-Agent` and `X-Client-IP-Address` headers (with configurable resolver) so Swetrix deduplicates visitors out of the box.
+- Persist visitor identifiers with `SharedPreferences` to keep unique user counts stable across sessions.
+- Supports page view, custom event, error, and heartbeat tracking with automatic visitor metadata and optional self-hosted endpoints.
+- Ships with unit tests and an updated Flutter example leveraging the new helper.

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:swetrix/swetrix.dart';
+import 'package:swetrix_flutter/swetrix_flutter.dart';
 
 void main() {
   group('Swetrix client', () {
@@ -34,7 +34,7 @@ void main() {
           metadata: {'plan': 'enterprise', 'level': 2},
         ),
         metadata: const {'cta': 'signup'},
-        performance: const SwetrixPerformanceMetrics(dns: 5, response: 12),
+        performanceMetrics: const SwetrixPerformanceMetrics(dns: 5, response: 12),
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
@@ -131,7 +131,9 @@ void main() {
 
       await expectLater(
         client.trackPageView(page: '/home'),
-        throwsA(isA<SwetrixException>().having((e) => e.statusCode, 'status', 402).having((e) => e.body, 'body', 'quota exceeded')),
+        throwsA(isA<SwetrixException>()
+            .having((e) => e.statusCode, 'status', 402)
+            .having((e) => e.body, 'body', 'quota exceeded')),
       );
 
       await client.close();

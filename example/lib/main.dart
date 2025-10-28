@@ -1,65 +1,59 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:swetrix_flutter/swetrix.dart';
+import 'package:swetrix_flutter/swetrix_flutter.dart';
 
 void main() {
-  runApp(const SwetrixExampleApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  final client = SwetrixFlutterClient(
+    projectId: 'YOUR_PROJECT_ID',
+    userAgent: 'SwetrixExample/1.0.0',
+    clientIpResolver: () async => '203.0.113.42',
+  );
+  runApp(SwetrixExampleApp(client: client));
 }
 
 class SwetrixExampleApp extends StatelessWidget {
-  const SwetrixExampleApp({super.key});
+  const SwetrixExampleApp({required this.client, super.key});
+
+  final SwetrixFlutterClient client;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Swetrix Demo',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const AnalyticsDemoPage(),
+      theme: ThemeData(colorSchemeSeed: Colors.blue),
+      home: AnalyticsDemoPage(client: client),
     );
   }
 }
 
 class AnalyticsDemoPage extends StatefulWidget {
-  const AnalyticsDemoPage({super.key});
+  const AnalyticsDemoPage({required this.client, super.key});
+
+  final SwetrixFlutterClient client;
 
   @override
   State<AnalyticsDemoPage> createState() => _AnalyticsDemoPageState();
 }
 
 class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
-  late final Swetrix _swetrix;
   final List<String> _logs = <String>[];
 
   @override
   void initState() {
     super.initState();
-
-    _swetrix = Swetrix(
-      projectId: 'YOUR_PROJECT_ID',
-      options: const SwetrixOptions(
-        defaultContext: SwetrixContext(locale: 'en-US'),
-        requestOptions: SwetrixRequestOptions(
-          userAgent: 'SwetrixExample/1.0.0',
-          // Replace with the visitor's IP if available (see docs).
-          clientIpAddress: '203.0.113.42',
-        ),
-      ),
-    );
-
-    unawaited(_swetrix.trackPageView(page: '/example/home'));
-    _swetrix.startHeartbeat();
+    widget.client.startHeartbeat();
+    widget.client.trackPageView(page: '/example/home').then((_) => _log('Tracked initial page view'));
   }
 
   @override
   void dispose() {
-    _swetrix.stopHeartbeat();
-    _swetrix.close();
+    widget.client.stopHeartbeat();
+    widget.client.close();
     super.dispose();
   }
 
   Future<void> _handleSignup() async {
-    await _swetrix.trackEvent(
+    await widget.client.trackEvent(
       'SignupAttempt',
       page: '/example/home',
       metadata: const {'plan': 'pro', 'fromExample': true},
@@ -68,7 +62,7 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
   }
 
   Future<void> _handleError() async {
-    await _swetrix.trackError(
+    await widget.client.trackError(
       const SwetrixErrorEvent(
         name: 'ExampleError',
         message: 'Demonstration error triggered by the UI.',
@@ -97,7 +91,7 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Project ID: ${_swetrix.projectId}',
+              'Project ID: ${widget.client.projectId}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),

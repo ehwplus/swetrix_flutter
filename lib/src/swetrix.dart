@@ -3,14 +3,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'context.dart';
+import 'context/context.dart';
 import 'error_event.dart';
 import 'options.dart';
 import 'performance_metrics.dart';
 import 'request_options.dart';
-import 'swetrix_exception.dart';
+import 'exceptions/swetrix_exception.dart';
 
-/// High-level client for interacting with the Swetrix Events API.
+/// Low-level client for interacting with the Swetrix Events API if you want to do all Flutter things yourself.
 class Swetrix {
   Swetrix({
     required this.projectId,
@@ -44,7 +44,7 @@ class Swetrix {
     bool unique = false,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
-    SwetrixPerformanceMetrics? performance,
+    SwetrixPerformanceMetrics? performanceMetrics,
     SwetrixRequestOptions? requestOptions,
   }) async {
     final effectiveContext = _mergeContext(context);
@@ -64,7 +64,7 @@ class Swetrix {
       payload['meta'] = _serialiseMeta(mergedMetadata);
     }
 
-    final perfPayload = performance?.toPayload();
+    final perfPayload = performanceMetrics?.toPayload();
     if (perfPayload != null && perfPayload.isNotEmpty) {
       payload['perf'] = perfPayload;
     }
