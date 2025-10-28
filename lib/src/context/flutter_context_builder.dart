@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import 'context.dart';
 import 'device_type/resolve_device_type.dart';
@@ -26,9 +30,50 @@ class SwetrixFlutterContextBuilder {
     final platformInfo = resolvePlatformInfo();
     final packageInfo = await PackageInfo.fromPlatform();
 
+    Future<({String? deviceModel, String? manufacturer, String? osVersion})> getDeviceInfo() async {
+      DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+      if (kIsWeb) {
+        return (deviceModel: null, manufacturer: null, osVersion: null);
+      } else if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await deviceInfoPlugin.androidInfo;
+        return (
+          deviceModel: androidInfo.model, // e.g. Pixel 10
+          manufacturer: androidInfo.manufacturer, // e.g. Google
+          osVersion: androidInfo.version.release, // e.g. 16
+        );
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosInfo = await deviceInfoPlugin.iosInfo;
+        return (
+          deviceModel: iosInfo.utsname.machine, // e.g. iPod7.1
+          manufacturer: 'Apple',
+          osVersion: iosInfo.systemVersion
+        );
+      } else if (Platform.isIOS) {
+        MacOsDeviceInfo macOsDeviceInfo = await deviceInfoPlugin.macOsInfo;
+        return (
+          deviceModel: macOsDeviceInfo.modelName, // e.g. MacBook Pro (16-inch, 2021)
+          manufacturer: 'Apple',
+          osVersion: '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',
+        );
+      } else if (Platform.isWindows) {
+        WindowsDeviceInfo windowsDeviceInfo = await deviceInfoPlugin.windowsInfo;
+        return (
+          deviceModel: windowsDeviceInfo.deviceId,
+          manufacturer: null,
+          osVersion: windowsDeviceInfo.productName,
+        );
+      } else {
+        return (deviceModel: null, manufacturer: null, osVersion: null);
+      }
+    }
+
+    final deviceInfo = await getDeviceInfo();
+
     final metadata = <String, Object?>{
       'os': platformInfo.operatingSystem,
-      if (platformInfo.operatingSystemVersion != null) 'os_version': platformInfo.operatingSystemVersion,
+      if (deviceInfo.osVersion != null) 'os_version': deviceInfo.osVersion,
+      if (deviceInfo.manufacturer != null) 'manufacturer': deviceInfo.manufacturer,
+      if (deviceInfo.deviceModel != null) 'deviceModel': deviceInfo.deviceModel,
       'device_type': resolveDeviceType(dispatcher: dispatcher),
       'app_version': packageInfo.version,
       'build_number': packageInfo.buildNumber,
