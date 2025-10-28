@@ -32,7 +32,8 @@ void main() {
 
       final client = SwetrixFlutterClient(
         projectId: 'PID123',
-        options: SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        options:
+            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
         userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
@@ -43,15 +44,18 @@ void main() {
 
       expect(requests.length, 2);
       final firstPayload = jsonDecode(requests[0].body) as Map<String, dynamic>;
-      final secondPayload = jsonDecode(requests[1].body) as Map<String, dynamic>;
+      final secondPayload =
+          jsonDecode(requests[1].body) as Map<String, dynamic>;
 
       expect(firstPayload['unique'], isTrue);
       expect(secondPayload.containsKey('unique'), isFalse);
 
       expect(requests[0].headers['User-Agent'], equals('TestAgent/1.0'));
-      expect(requests[0].headers['X-Client-IP-Address'], equals('198.51.100.1'));
+      expect(
+          requests[0].headers['X-Client-IP-Address'], equals('198.51.100.1'));
       expect(requests[1].headers['User-Agent'], equals('TestAgent/1.0'));
-      expect(requests[1].headers['X-Client-IP-Address'], equals('198.51.100.1'));
+      expect(
+          requests[1].headers['X-Client-IP-Address'], equals('198.51.100.1'));
 
       final firstMeta = firstPayload['meta'] as Map<String, dynamic>;
       final secondMeta = secondPayload['meta'] as Map<String, dynamic>;
@@ -73,7 +77,8 @@ void main() {
 
       final client = SwetrixFlutterClient(
         projectId: 'PID456',
-        options: SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        options:
+            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
         userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
@@ -91,7 +96,8 @@ void main() {
       expect(meta['currency'], equals('USD'));
       expect(meta['os'], isNotEmpty);
       expect(capturedRequest!.headers['User-Agent'], equals('TestAgent/1.0'));
-      expect(capturedRequest!.headers['X-Client-IP-Address'], equals('198.51.100.1'));
+      expect(capturedRequest!.headers['X-Client-IP-Address'],
+          equals('198.51.100.1'));
 
       await client.close();
     });

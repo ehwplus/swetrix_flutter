@@ -21,9 +21,11 @@ class SwetrixFlutterClient {
     SharedPreferencesFactory? sharedPreferencesFactory,
     String? userAgent,
     Future<String?> Function()? clientIpResolver,
-  })  : _swetrix = Swetrix(projectId: projectId, options: options, httpClient: httpClient),
+  })  : _swetrix = Swetrix(
+            projectId: projectId, options: options, httpClient: httpClient),
         _projectId = projectId,
-        _visitorStore = SwetrixVisitorStore(sharedPreferences: sharedPreferencesFactory?.call()),
+        _visitorStore = SwetrixVisitorStore(
+            sharedPreferences: sharedPreferencesFactory?.call()),
         _providedUserAgent = userAgent,
         _clientIpResolver = clientIpResolver ?? _defaultClientIpResolver;
 
@@ -61,7 +63,8 @@ class SwetrixFlutterClient {
     _userAgent ??= _providedUserAgent ?? environment.userAgent;
 
     final contextWithEnvironment = _mergeContext(environment.context, context);
-    final metadataWithEnvironment = await _buildMetadata(environment.context, metadata);
+    final metadataWithEnvironment =
+        await _buildMetadata(environment.context, metadata);
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     var sendUnique = unique;
@@ -98,7 +101,8 @@ class SwetrixFlutterClient {
     _userAgent ??= _providedUserAgent ?? environment.userAgent;
 
     final contextWithEnvironment = _mergeContext(environment.context, context);
-    final metadataWithEnvironment = await _buildMetadata(environment.context, metadata);
+    final metadataWithEnvironment =
+        await _buildMetadata(environment.context, metadata);
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     await _swetrix.trackEvent(
@@ -120,7 +124,8 @@ class SwetrixFlutterClient {
     _userAgent ??= _providedUserAgent ?? environment.userAgent;
 
     final contextWithEnvironment = _mergeContext(environment.context, context);
-    final metadataWithEnvironment = await _buildMetadata(environment.context, error.metadata);
+    final metadataWithEnvironment =
+        await _buildMetadata(environment.context, error.metadata);
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     final decoratedError = SwetrixErrorEvent(
@@ -150,13 +155,15 @@ class SwetrixFlutterClient {
     Duration interval = const Duration(seconds: 30),
     SwetrixRequestOptions? requestOptions,
   }) =>
-      _swetrix.startHeartbeat(interval: interval, requestOptions: requestOptions);
+      _swetrix.startHeartbeat(
+          interval: interval, requestOptions: requestOptions);
 
   void stopHeartbeat() => _swetrix.stopHeartbeat();
 
   Future<void> close() => _swetrix.close();
 
-  SwetrixContext _mergeContext(SwetrixContext generated, SwetrixContext? override) {
+  SwetrixContext _mergeContext(
+      SwetrixContext generated, SwetrixContext? override) {
     if (override == null) {
       return generated;
     }
@@ -167,7 +174,8 @@ class SwetrixFlutterClient {
     SwetrixContext generatedContext,
     Map<String, Object?>? metadata,
   ) async {
-    final envMetadata = Map<String, Object?>.from(generatedContext.metadata ?? <String, Object?>{});
+    final envMetadata = Map<String, Object?>.from(
+        generatedContext.metadata ?? <String, Object?>{});
     final visitorId = await ensureVisitorId();
     envMetadata['visitor_id'] = visitorId;
 
@@ -178,19 +186,23 @@ class SwetrixFlutterClient {
     return envMetadata;
   }
 
-  Future<SwetrixRequestOptions?> _composeRequestOptions(SwetrixRequestOptions? overrides) async {
+  Future<SwetrixRequestOptions?> _composeRequestOptions(
+      SwetrixRequestOptions? overrides) async {
     final userAgent = _userAgent;
     final ipAddress = await _resolveClientIpAddress();
 
     SwetrixRequestOptions? merged = overrides;
 
-    if ((userAgent != null && userAgent.isNotEmpty) || (ipAddress != null && ipAddress.isNotEmpty)) {
+    if ((userAgent != null && userAgent.isNotEmpty) ||
+        (ipAddress != null && ipAddress.isNotEmpty)) {
       final base = SwetrixRequestOptions(
         userAgent: userAgent,
         clientIpAddress: ipAddress,
         headers: {
-          if (userAgent != null && userAgent.isNotEmpty) 'User-Agent': userAgent,
-          if (ipAddress != null && ipAddress.isNotEmpty) 'X-Client-IP-Address': ipAddress,
+          if (userAgent != null && userAgent.isNotEmpty)
+            'User-Agent': userAgent,
+          if (ipAddress != null && ipAddress.isNotEmpty)
+            'X-Client-IP-Address': ipAddress,
         },
       );
 
@@ -203,7 +215,8 @@ class SwetrixFlutterClient {
 
     final headers = <String, String>{
       ...merged.headers,
-      if (merged.userAgent != null && merged.userAgent!.isNotEmpty) 'User-Agent': merged.userAgent!,
+      if (merged.userAgent != null && merged.userAgent!.isNotEmpty)
+        'User-Agent': merged.userAgent!,
       if (merged.clientIpAddress != null && merged.clientIpAddress!.isNotEmpty)
         'X-Client-IP-Address': merged.clientIpAddress!,
     };
@@ -234,7 +247,8 @@ class SwetrixFlutterClient {
 
   static Future<String?> _defaultClientIpResolver() async {
     try {
-      final response = await http.get(Uri.parse('https://api.ipify.org?format=text'));
+      final response =
+          await http.get(Uri.parse('https://api.ipify.org?format=text'));
       if (response.statusCode == 200) {
         final ip = response.body.trim();
         if (ip.isNotEmpty) {

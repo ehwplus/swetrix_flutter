@@ -57,7 +57,8 @@ class Swetrix {
     Map<String, Object?>? mergedMetadata = metadata;
     if (effectiveContext != null) {
       payload.addAll(effectiveContext.toPayload());
-      mergedMetadata = _mergeMetadata(effectiveContext.toPageMetadata(), mergedMetadata);
+      mergedMetadata =
+          _mergeMetadata(effectiveContext.toPageMetadata(), mergedMetadata);
     }
 
     if (mergedMetadata != null && mergedMetadata.isNotEmpty) {
@@ -187,11 +188,13 @@ class Swetrix {
     }
 
     final uri = _resolve(path);
-    final effectiveRequestOptions = _options.requestOptions.merge(requestOptions);
+    final effectiveRequestOptions =
+        _options.requestOptions.merge(requestOptions);
     final headers = <String, String>{
       'Content-Type': 'application/json',
       ...effectiveRequestOptions.headers,
-      if (effectiveRequestOptions.userAgent != null) 'User-Agent': effectiveRequestOptions.userAgent!,
+      if (effectiveRequestOptions.userAgent != null)
+        'User-Agent': effectiveRequestOptions.userAgent!,
       if (effectiveRequestOptions.clientIpAddress != null)
         'X-Client-IP-Address': effectiveRequestOptions.clientIpAddress!,
     };
@@ -240,7 +243,8 @@ class Swetrix {
           result[entry.key] = nested;
         }
       } else if (value is Map<String, String>) {
-        final nested = value.map((key, nestedValue) => MapEntry(key, nestedValue));
+        final nested =
+            value.map((key, nestedValue) => MapEntry(key, nestedValue));
         if (nested.isNotEmpty) {
           result[entry.key] = nested;
         }
@@ -258,7 +262,8 @@ class Swetrix {
     if (overlay == null) {
       return base;
     }
-    final result = base == null ? <String, Object?>{} : Map<String, Object?>.from(base);
+    final result =
+        base == null ? <String, Object?>{} : Map<String, Object?>.from(base);
     overlay.forEach((key, value) {
       result[key] = value;
     });
@@ -267,18 +272,24 @@ class Swetrix {
 
   Map<String, String> _serialiseMeta(Map<String, Object?> meta) {
     if (meta.length > 100) {
-      throw ArgumentError.value(meta.length, 'meta.length', 'Metadata cannot contain more than 100 keys.');
+      throw ArgumentError.value(meta.length, 'meta.length',
+          'Metadata cannot contain more than 100 keys.');
     }
     var totalLength = 0;
     final result = <String, String>{};
     meta.forEach((key, value) {
-      if (value != null && value is! String && value is! num && value is! bool) {
-        throw ArgumentError.value(value, 'meta[$key]', 'Metadata values must be primitive types.');
+      if (value != null &&
+          value is! String &&
+          value is! num &&
+          value is! bool) {
+        throw ArgumentError.value(
+            value, 'meta[$key]', 'Metadata values must be primitive types.');
       }
       final stringValue = value == null ? 'null' : value.toString();
       totalLength += key.length + stringValue.length;
       if (totalLength > 2000) {
-        throw ArgumentError('Combined metadata length cannot exceed 2000 characters.');
+        throw ArgumentError(
+            'Combined metadata length cannot exceed 2000 characters.');
       }
       result[key] = stringValue;
     });

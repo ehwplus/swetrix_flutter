@@ -34,7 +34,8 @@ void main() {
           metadata: {'plan': 'enterprise', 'level': 2},
         ),
         metadata: const {'cta': 'signup'},
-        performanceMetrics: const SwetrixPerformanceMetrics(dns: 5, response: 12),
+        performanceMetrics:
+            const SwetrixPerformanceMetrics(dns: 5, response: 12),
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
@@ -44,7 +45,8 @@ void main() {
       expect(body['lc'], equals('en-US'));
       expect(body['ref'], equals('https://ref.example'));
       expect(body['perf'], equals({'dns': 5, 'response': 12}));
-      expect(body['meta'], equals({'plan': 'enterprise', 'level': '2', 'cta': 'signup'}));
+      expect(body['meta'],
+          equals({'plan': 'enterprise', 'level': '2', 'cta': 'signup'}));
       expect(capturedRequest.headers['User-Agent'], equals('UA/1.0'));
 
       await client.close();
@@ -66,14 +68,27 @@ void main() {
         'Signup_Success',
         page: '/pricing',
         unique: true,
-        metadata: const {'plan': 'pro', 'value': 9.99, 'eligible': true, 'missing': null},
+        metadata: const {
+          'plan': 'pro',
+          'value': 9.99,
+          'eligible': true,
+          'missing': null
+        },
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
-      expect(capturedRequest.url.toString(), 'https://api.swetrix.com/log/custom');
+      expect(
+          capturedRequest.url.toString(), 'https://api.swetrix.com/log/custom');
       expect(body['ev'], equals('Signup_Success'));
       expect(body['unique'], isTrue);
-      expect(body['meta'], equals({'plan': 'pro', 'value': '9.99', 'eligible': 'true', 'missing': 'null'}));
+      expect(
+          body['meta'],
+          equals({
+            'plan': 'pro',
+            'value': '9.99',
+            'eligible': 'true',
+            'missing': 'null'
+          }));
 
       await client.close();
     });
@@ -114,7 +129,8 @@ void main() {
       );
 
       expect(capturedRequest.headers['User-Agent'], equals('Override-UA'));
-      expect(capturedRequest.headers['X-Client-IP-Address'], equals('203.0.113.1'));
+      expect(capturedRequest.headers['X-Client-IP-Address'],
+          equals('203.0.113.1'));
       expect(capturedRequest.headers['X-Default'], equals('value'));
       expect(capturedRequest.headers['X-Override'], equals('yes'));
 

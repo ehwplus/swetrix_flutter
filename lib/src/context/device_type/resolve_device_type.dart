@@ -29,12 +29,14 @@ String resolveDeviceType({ui.PlatformDispatcher? dispatcher}) {
 }
 
 String _classifyByWidth(ui.PlatformDispatcher dispatcher) {
-  final view = dispatcher.implicitView ?? (dispatcher.views.isNotEmpty ? dispatcher.views.first : null);
+  final view = dispatcher.implicitView ??
+      (dispatcher.views.isNotEmpty ? dispatcher.views.first : null);
   if (view == null) {
     return 'unknown';
   }
 
-  final logicalWidth = view.physicalSize.width / max(view.devicePixelRatio, 1.0);
+  final logicalWidth =
+      view.physicalSize.width / max(view.devicePixelRatio, 1.0);
   if (logicalWidth >= 1024) {
     return 'desktop';
   }

@@ -38,7 +38,8 @@ class SwetrixErrorEvent {
       if (page != null) 'pg': page,
       if (timezone != null) 'tz': timezone,
       if (locale != null) 'lc': locale,
-      if (metadata != null && metadata!.isNotEmpty) 'meta': Map<String, Object?>.from(metadata!),
+      if (metadata != null && metadata!.isNotEmpty)
+        'meta': Map<String, Object?>.from(metadata!),
     };
   }
 }

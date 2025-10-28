@@ -12,7 +12,8 @@ import 'platform_info/platform_info.dart';
 import 'timezone/resolve_timezone.dart';
 
 class SwetrixFlutterEnvironment {
-  const SwetrixFlutterEnvironment({required this.context, required this.userAgent});
+  const SwetrixFlutterEnvironment(
+      {required this.context, required this.userAgent});
 
   final SwetrixContext context;
   final String userAgent;
@@ -30,7 +31,8 @@ class SwetrixFlutterContextBuilder {
     final platformInfo = resolvePlatformInfo();
     final packageInfo = await PackageInfo.fromPlatform();
 
-    Future<({String? deviceModel, String? manufacturer, String? osVersion})> getDeviceInfo() async {
+    Future<({String? deviceModel, String? manufacturer, String? osVersion})>
+        getDeviceInfo() async {
       DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
       if (kIsWeb) {
         return (deviceModel: null, manufacturer: null, osVersion: null);
@@ -51,12 +53,15 @@ class SwetrixFlutterContextBuilder {
       } else if (Platform.isIOS) {
         MacOsDeviceInfo macOsDeviceInfo = await deviceInfoPlugin.macOsInfo;
         return (
-          deviceModel: macOsDeviceInfo.modelName, // e.g. MacBook Pro (16-inch, 2021)
+          deviceModel:
+              macOsDeviceInfo.modelName, // e.g. MacBook Pro (16-inch, 2021)
           manufacturer: 'Apple',
-          osVersion: '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',
+          osVersion:
+              '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',
         );
       } else if (Platform.isWindows) {
-        WindowsDeviceInfo windowsDeviceInfo = await deviceInfoPlugin.windowsInfo;
+        WindowsDeviceInfo windowsDeviceInfo =
+            await deviceInfoPlugin.windowsInfo;
         return (
           deviceModel: windowsDeviceInfo.deviceId,
           manufacturer: null,
@@ -72,13 +77,15 @@ class SwetrixFlutterContextBuilder {
     final metadata = <String, Object?>{
       'os': platformInfo.operatingSystem,
       if (deviceInfo.osVersion != null) 'os_version': deviceInfo.osVersion,
-      if (deviceInfo.manufacturer != null) 'manufacturer': deviceInfo.manufacturer,
+      if (deviceInfo.manufacturer != null)
+        'manufacturer': deviceInfo.manufacturer,
       if (deviceInfo.deviceModel != null) 'deviceModel': deviceInfo.deviceModel,
       'device_type': resolveDeviceType(dispatcher: dispatcher),
       'app_version': packageInfo.version,
       'build_number': packageInfo.buildNumber,
       if (locale.languageCode.isNotEmpty) 'language': locale.languageCode,
-      if (locale.countryCode != null && locale.countryCode!.isNotEmpty) 'country': locale.countryCode,
+      if (locale.countryCode != null && locale.countryCode!.isNotEmpty)
+        'country': locale.countryCode,
       if (platformInfo.browserName != null) 'browser': platformInfo.browserName,
     };
 
@@ -102,14 +109,17 @@ class SwetrixFlutterContextBuilder {
     );
   }
 
-  static String _buildUserAgent({required PlatformInfo platformInfo, required PackageInfo packageInfo}) {
+  static String _buildUserAgent(
+      {required PlatformInfo platformInfo, required PackageInfo packageInfo}) {
     final existing = platformInfo.userAgent;
     if (existing != null && existing.isNotEmpty) {
       return existing;
     }
 
     final buffer = StringBuffer()
-      ..write(packageInfo.packageName.isEmpty ? 'flutter_app' : packageInfo.packageName)
+      ..write(packageInfo.packageName.isEmpty
+          ? 'flutter_app'
+          : packageInfo.packageName)
       ..write('/')
       ..write(packageInfo.version.isEmpty ? '0.0.0' : packageInfo.version);
 
@@ -123,7 +133,8 @@ class SwetrixFlutterContextBuilder {
       ..write(' (')
       ..write(platformInfo.operatingSystem);
 
-    if (platformInfo.operatingSystemVersion != null && platformInfo.operatingSystemVersion!.isNotEmpty) {
+    if (platformInfo.operatingSystemVersion != null &&
+        platformInfo.operatingSystemVersion!.isNotEmpty) {
       buffer
         ..write(' ')
         ..write(platformInfo.operatingSystemVersion);

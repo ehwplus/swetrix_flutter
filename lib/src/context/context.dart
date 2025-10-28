@@ -75,9 +75,11 @@ class SwetrixContext {
     };
   }
 
-  Map<String, Object?>? toPageMetadata() => metadata == null ? null : Map<String, Object?>.from(metadata!);
+  Map<String, Object?>? toPageMetadata() =>
+      metadata == null ? null : Map<String, Object?>.from(metadata!);
 
-  Map<String, Object?>? _mergeMeta(Map<String, Object?>? base, Map<String, Object?>? override) {
+  Map<String, Object?>? _mergeMeta(
+      Map<String, Object?>? base, Map<String, Object?>? override) {
     if (override == null) {
       return base;
     }
