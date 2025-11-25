@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 /// Return locale tag '$language-$country', eg. 'de-DE
 extension LocaleTag on Locale {
-  toLocaleTag() {
+  String toLocaleTag() {
     try {
       return toLanguageTag();
     } catch (_) {

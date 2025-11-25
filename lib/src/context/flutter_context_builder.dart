@@ -54,7 +54,7 @@ class SwetrixFlutterContextBuilder {
         MacOsDeviceInfo macOsDeviceInfo = await deviceInfoPlugin.macOsInfo;
         return (
           deviceModel:
-              macOsDeviceInfo.modelName, // e.g. MacBook Pro (16-inch, 2021)
+              macOsDeviceInfo.model, // e.g. MacBook Pro (16-inch, 2021)
           manufacturer: 'Apple',
           osVersion:
               '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',

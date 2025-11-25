@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Add `IpAddressCacheRule` test-wise with default value `never`. I want to evaluate if the unique visitors are tracked more reliable.
+- Refactor: Lint warnings fixed
+
 ## 0.1.1
 
 - Initial public release of the Swetrix Events API client for Flutter/Dart.
