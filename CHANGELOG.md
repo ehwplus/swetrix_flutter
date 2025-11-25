@@ -1,4 +1,4 @@
-## 0.1.2
+## 0.1.3
 
 - Add `IpAddressCacheRule` test-wise with default value `never`. I want to evaluate if the unique visitors are tracked more reliable.
 - Refactor: Lint warnings fixed

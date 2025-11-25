@@ -9,5 +9,5 @@ export 'src/exceptions/swetrix_exception.dart';
 export 'src/context/flutter_context_builder.dart'
     show SwetrixFlutterContextBuilder, SwetrixFlutterEnvironment;
 export 'src/swetrix_flutter_client.dart'
-    show SwetrixFlutterClient, SharedPreferencesFactory;
+    show SwetrixFlutterClient, SharedPreferencesFactory, IpAddressCacheRule;
 export 'src/context/visitor/visitor_store.dart' show SwetrixVisitorStore;

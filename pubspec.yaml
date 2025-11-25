@@ -1,6 +1,6 @@
 name: swetrix_flutter
 description: A lightweight Swetrix Events API client for Flutter and Dart apps.
-version: 0.1.2
+version: 0.1.3
 homepage: https://swetrix.com
 repository: https://github.com/ehwplus/swetrix_flutter
 issue_tracker: https://github.com/ehwplus/swetrix_flutter/issues
