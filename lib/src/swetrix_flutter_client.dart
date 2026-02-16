@@ -58,6 +58,7 @@ class SwetrixFlutterClient {
   Future<void> trackPageView({
     String? page,
     bool unique = true,
+    String? profileId,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
     SwetrixPerformanceMetrics? performanceMetrics,
@@ -69,6 +70,11 @@ class SwetrixFlutterClient {
     final contextWithEnvironment = _mergeContext(environment.context, context);
     final metadataWithEnvironment =
         await _buildMetadata(environment.context, metadata);
+    final metadataVisitorId = metadataWithEnvironment['visitor_id'];
+    final resolvedProfileId = await _resolveProfileId(
+      profileId,
+      fallbackVisitorId: metadataVisitorId is String ? metadataVisitorId : null,
+    );
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     var sendUnique = unique;
@@ -82,6 +88,7 @@ class SwetrixFlutterClient {
     await _swetrix.trackPageView(
       page: page,
       unique: sendUnique,
+      profileId: resolvedProfileId,
       context: contextWithEnvironment,
       metadata: metadataWithEnvironment,
       performanceMetrics: performanceMetrics,
@@ -97,6 +104,7 @@ class SwetrixFlutterClient {
     String eventName, {
     bool unique = false,
     String? page,
+    String? profileId,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
     SwetrixRequestOptions? requestOptions,
@@ -107,12 +115,18 @@ class SwetrixFlutterClient {
     final contextWithEnvironment = _mergeContext(environment.context, context);
     final metadataWithEnvironment =
         await _buildMetadata(environment.context, metadata);
+    final metadataVisitorId = metadataWithEnvironment['visitor_id'];
+    final resolvedProfileId = await _resolveProfileId(
+      profileId,
+      fallbackVisitorId: metadataVisitorId is String ? metadataVisitorId : null,
+    );
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     await _swetrix.trackEvent(
       eventName,
       unique: unique,
       page: page,
+      profileId: resolvedProfileId,
       context: contextWithEnvironment,
       metadata: metadataWithEnvironment,
       requestOptions: resolvedRequestOptions,
@@ -152,19 +166,104 @@ class SwetrixFlutterClient {
     );
   }
 
-  Future<void> sendHeartbeat({SwetrixRequestOptions? requestOptions}) =>
-      _swetrix.sendHeartbeat(requestOptions: requestOptions);
+  Future<void> sendHeartbeat({
+    String? profileId,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    return _swetrix.sendHeartbeat(
+      profileId: resolvedProfileId,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
 
   void startHeartbeat({
     Duration interval = const Duration(seconds: 30),
+    String? profileId,
     SwetrixRequestOptions? requestOptions,
   }) =>
       _swetrix.startHeartbeat(
-          interval: interval, requestOptions: requestOptions);
+        interval: interval,
+        profileId: profileId ?? options.profileId,
+        requestOptions: requestOptions,
+      );
 
   void stopHeartbeat() => _swetrix.stopHeartbeat();
 
   Future<void> close() => _swetrix.close();
+
+  Future<Map<String, bool>> getFeatureFlags({
+    String? profileId,
+    bool forceRefresh = false,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    return _swetrix.getFeatureFlags(
+      profileId: resolvedProfileId,
+      forceRefresh: forceRefresh,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
+
+  Future<bool> getFeatureFlag(
+    String key, {
+    String? profileId,
+    bool defaultValue = false,
+    bool forceRefresh = false,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    return _swetrix.getFeatureFlag(
+      key,
+      profileId: resolvedProfileId,
+      defaultValue: defaultValue,
+      forceRefresh: forceRefresh,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
+
+  Future<Map<String, String>> getExperiments({
+    String? profileId,
+    bool forceRefresh = false,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    return _swetrix.getExperiments(
+      profileId: resolvedProfileId,
+      forceRefresh: forceRefresh,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
+
+  Future<String?> getExperiment(
+    String experimentId, {
+    String? profileId,
+    String? defaultVariant,
+    bool forceRefresh = false,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    return _swetrix.getExperiment(
+      experimentId,
+      profileId: resolvedProfileId,
+      defaultVariant: defaultVariant,
+      forceRefresh: forceRefresh,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
+
+  void clearFeatureFlagsCache() => _swetrix.clearFeatureFlagsCache();
+
+  void clearExperimentsCache() => _swetrix.clearExperimentsCache();
+
+  int get pendingQueueLength => _swetrix.pendingQueueLength;
+
+  Future<void> flushQueue() => _swetrix.flushQueue();
 
   SwetrixContext _mergeContext(
       SwetrixContext generated, SwetrixContext? override) {
@@ -190,9 +289,29 @@ class SwetrixFlutterClient {
     return envMetadata;
   }
 
+  Future<String> _resolveProfileId(
+    String? overrideProfileId, {
+    String? fallbackVisitorId,
+  }) async {
+    if (overrideProfileId != null && overrideProfileId.isNotEmpty) {
+      return overrideProfileId;
+    }
+
+    final configuredProfileId = options.profileId;
+    if (configuredProfileId != null && configuredProfileId.isNotEmpty) {
+      return configuredProfileId;
+    }
+
+    if (fallbackVisitorId != null && fallbackVisitorId.isNotEmpty) {
+      return fallbackVisitorId;
+    }
+
+    return ensureVisitorId();
+  }
+
   Future<SwetrixRequestOptions?> _composeRequestOptions(
       SwetrixRequestOptions? overrides) async {
-    final userAgent = _userAgent;
+    final userAgent = await _resolveUserAgent();
     final ipAddress = await _resolveClientIpAddress();
 
     SwetrixRequestOptions? merged = overrides;
@@ -230,6 +349,23 @@ class SwetrixFlutterClient {
       clientIpAddress: merged.clientIpAddress,
       headers: headers,
     );
+  }
+
+  Future<String?> _resolveUserAgent() async {
+    final existing = _userAgent;
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+
+    final provided = _providedUserAgent;
+    if (provided != null && provided.isNotEmpty) {
+      _userAgent = provided;
+      return provided;
+    }
+
+    final environment = await SwetrixFlutterContextBuilder.build();
+    _userAgent = environment.userAgent;
+    return _userAgent;
   }
 
   Future<String?> _resolveClientIpAddress() async {

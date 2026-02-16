@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 import 'context.dart';
 import 'device_type/resolve_device_type.dart';
@@ -12,8 +13,10 @@ import 'platform_info/platform_info.dart';
 import 'timezone/resolve_timezone.dart';
 
 class SwetrixFlutterEnvironment {
-  const SwetrixFlutterEnvironment(
-      {required this.context, required this.userAgent});
+  const SwetrixFlutterEnvironment({
+    required this.context,
+    required this.userAgent,
+  });
 
   final SwetrixContext context;
   final String userAgent;
@@ -33,43 +36,49 @@ class SwetrixFlutterContextBuilder {
 
     Future<({String? deviceModel, String? manufacturer, String? osVersion})>
         getDeviceInfo() async {
-      DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-      if (kIsWeb) {
+      final deviceInfoPlugin = DeviceInfoPlugin();
+      try {
+        if (kIsWeb) {
+          return (deviceModel: null, manufacturer: null, osVersion: null);
+        } else if (Platform.isAndroid) {
+          final androidInfo = await deviceInfoPlugin.androidInfo;
+          return (
+            deviceModel: androidInfo.model, // e.g. Pixel 10
+            manufacturer: androidInfo.manufacturer, // e.g. Google
+            osVersion: androidInfo.version.release, // e.g. 16
+          );
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfoPlugin.iosInfo;
+          return (
+            deviceModel: iosInfo.utsname.machine, // e.g. iPod7.1
+            manufacturer: 'Apple',
+            osVersion: iosInfo.systemVersion,
+          );
+        } else if (Platform.isMacOS) {
+          final macOsDeviceInfo = await deviceInfoPlugin.macOsInfo;
+          return (
+            deviceModel:
+                macOsDeviceInfo.model, // e.g. MacBook Pro (16-inch, 2021)
+            manufacturer: 'Apple',
+            osVersion:
+                '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',
+          );
+        } else if (Platform.isWindows) {
+          final windowsDeviceInfo = await deviceInfoPlugin.windowsInfo;
+          return (
+            deviceModel: windowsDeviceInfo.deviceId,
+            manufacturer: null,
+            osVersion: windowsDeviceInfo.productName,
+          );
+        }
+      } on MissingPluginException {
         return (deviceModel: null, manufacturer: null, osVersion: null);
-      } else if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfoPlugin.androidInfo;
-        return (
-          deviceModel: androidInfo.model, // e.g. Pixel 10
-          manufacturer: androidInfo.manufacturer, // e.g. Google
-          osVersion: androidInfo.version.release, // e.g. 16
-        );
-      } else if (Platform.isIOS) {
-        IosDeviceInfo iosInfo = await deviceInfoPlugin.iosInfo;
-        return (
-          deviceModel: iosInfo.utsname.machine, // e.g. iPod7.1
-          manufacturer: 'Apple',
-          osVersion: iosInfo.systemVersion
-        );
-      } else if (Platform.isIOS) {
-        MacOsDeviceInfo macOsDeviceInfo = await deviceInfoPlugin.macOsInfo;
-        return (
-          deviceModel:
-              macOsDeviceInfo.model, // e.g. MacBook Pro (16-inch, 2021)
-          manufacturer: 'Apple',
-          osVersion:
-              '${macOsDeviceInfo.majorVersion}.${macOsDeviceInfo.minorVersion}.${macOsDeviceInfo.patchVersion}',
-        );
-      } else if (Platform.isWindows) {
-        WindowsDeviceInfo windowsDeviceInfo =
-            await deviceInfoPlugin.windowsInfo;
-        return (
-          deviceModel: windowsDeviceInfo.deviceId,
-          manufacturer: null,
-          osVersion: windowsDeviceInfo.productName,
-        );
-      } else {
+      } catch (_) {
+        // Device info is optional; continue with base context when unavailable.
         return (deviceModel: null, manufacturer: null, osVersion: null);
       }
+
+      return (deviceModel: null, manufacturer: null, osVersion: null);
     }
 
     final deviceInfo = await getDeviceInfo();
@@ -109,8 +118,10 @@ class SwetrixFlutterContextBuilder {
     );
   }
 
-  static String _buildUserAgent(
-      {required PlatformInfo platformInfo, required PackageInfo packageInfo}) {
+  static String _buildUserAgent({
+    required PlatformInfo platformInfo,
+    required PackageInfo packageInfo,
+  }) {
     final existing = platformInfo.userAgent;
     if (existing != null && existing.isNotEmpty) {
       return existing;
@@ -129,17 +140,12 @@ class SwetrixFlutterContextBuilder {
         ..write(packageInfo.buildNumber);
     }
 
-    buffer
-      ..write(' (')
-      ..write(platformInfo.operatingSystem);
-
-    if (platformInfo.operatingSystemVersion != null &&
-        platformInfo.operatingSystemVersion!.isNotEmpty) {
-      buffer
-        ..write(' ')
-        ..write(platformInfo.operatingSystemVersion);
+    buffer.write(' (');
+    if (Platform.operatingSystemVersion.isNotEmpty) {
+      buffer.write(Platform.operatingSystemVersion);
+    } else {
+      buffer.write(Platform.operatingSystem);
     }
-
     buffer.write(')');
     return buffer.toString();
   }

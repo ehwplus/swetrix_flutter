@@ -62,6 +62,8 @@ void main() {
 
       expect(firstMeta['visitor_id'], isNotEmpty);
       expect(firstMeta['visitor_id'], equals(secondMeta['visitor_id']));
+      expect(firstPayload['profileId'], equals(firstMeta['visitor_id']));
+      expect(secondPayload['profileId'], equals(secondMeta['visitor_id']));
       expect(firstMeta['app_version'], equals('1.2.3'));
       expect(firstMeta['os'], isNotNull);
 
@@ -98,6 +100,123 @@ void main() {
       expect(capturedRequest!.headers['User-Agent'], equals('TestAgent/1.0'));
       expect(capturedRequest!.headers['X-Client-IP-Address'],
           equals('198.51.100.1'));
+
+      await client.close();
+    });
+
+    test('allows overriding profileId per tracking call', () async {
+      http.Request? capturedRequest;
+      final mockClient = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response('{}', 201);
+      });
+
+      final client = SwetrixFlutterClient(
+        projectId: 'PID789',
+        options: SwetrixOptions(
+          apiUrl: Uri.parse('https://api.example.com/log'),
+          profileId: 'global-profile',
+        ),
+        httpClient: mockClient,
+        userAgent: 'TestAgent/1.0',
+        clientIpResolver: () async => '198.51.100.1',
+      );
+
+      await client.trackEvent(
+        'CheckoutStarted',
+        profileId: 'override-profile',
+      );
+
+      final payload = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
+      expect(payload['profileId'], equals('override-profile'));
+
+      await client.close();
+    });
+
+    test('evaluates feature flags with resolved profileId and caches results',
+        () async {
+      final requests = <http.Request>[];
+      final mockClient = MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          jsonEncode({
+            'flags': {'new_ui': true},
+            'experiments': {'checkout-redesign': 'variant-b'},
+          }),
+          200,
+        );
+      });
+
+      final client = SwetrixFlutterClient(
+        projectId: 'PID999',
+        options:
+            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        httpClient: mockClient,
+        userAgent: 'TestAgent/1.0',
+        clientIpResolver: () async => '198.51.100.1',
+      );
+
+      final visitorId = await client.ensureVisitorId();
+      final flags = await client.getFeatureFlags();
+      final experiments = await client.getExperiments();
+      final flag = await client.getFeatureFlag('new_ui');
+      final variant = await client.getExperiment('checkout-redesign');
+
+      expect(flags, equals({'new_ui': true}));
+      expect(experiments, equals({'checkout-redesign': 'variant-b'}));
+      expect(flag, isTrue);
+      expect(variant, equals('variant-b'));
+      expect(requests, hasLength(1));
+
+      final body = jsonDecode(requests.single.body) as Map<String, dynamic>;
+      expect(body['pid'], equals('PID999'));
+      expect(body['profileId'], equals(visitorId));
+      expect(
+        requests.single.url.toString(),
+        equals('https://api.example.com/feature-flag/evaluate'),
+      );
+      expect(requests.single.headers['User-Agent'], equals('TestAgent/1.0'));
+      expect(
+        requests.single.headers['X-Client-IP-Address'],
+        equals('198.51.100.1'),
+      );
+
+      await client.close();
+    });
+
+    test('queues events while offline and flushes them after reconnect',
+        () async {
+      final requests = <http.Request>[];
+      var offline = true;
+      final mockClient = MockClient((request) async {
+        if (offline) {
+          throw http.ClientException('offline');
+        }
+        requests.add(request);
+        return http.Response('{}', 201);
+      });
+
+      final client = SwetrixFlutterClient(
+        projectId: 'PID555',
+        options: const SwetrixOptions(
+          queueFailedRequests: true,
+          queueRetryInterval: Duration(milliseconds: 5),
+        ),
+        httpClient: mockClient,
+        userAgent: 'TestAgent/1.0',
+        clientIpResolver: () async => '198.51.100.1',
+      );
+
+      await client.trackEvent('OfflineEvent');
+
+      offline = false;
+      await client.trackEvent('OnlineEvent');
+
+      expect(requests, hasLength(2));
+      final firstBody = jsonDecode(requests[0].body) as Map<String, dynamic>;
+      final secondBody = jsonDecode(requests[1].body) as Map<String, dynamic>;
+      expect(firstBody['ev'], equals('OfflineEvent'));
+      expect(secondBody['ev'], equals('OnlineEvent'));
 
       await client.close();
     });

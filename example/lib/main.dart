@@ -7,6 +7,11 @@ void main() {
     projectId: 'YOUR_PROJECT_ID',
     userAgent: 'SwetrixExample/1.0.0',
     clientIpResolver: () async => '203.0.113.42',
+    ipAddressCacheRule: IpAddressCacheRule.monthly,
+    options: SwetrixOptions(
+      apiUrl: Uri.parse('https://analytics.ehwplus.com/log'),
+      profileId: 'user_42',
+    ),
   );
   runApp(SwetrixExampleApp(client: client));
 }
@@ -42,9 +47,7 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
   void initState() {
     super.initState();
     widget.client.startHeartbeat();
-    widget.client
-        .trackPageView(page: '/example/home')
-        .then((_) => _log('Tracked initial page view'));
+    widget.client.trackPageView(page: '/example/home').then((_) => _log('Tracked initial page view'));
   }
 
   @override
@@ -118,8 +121,7 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Theme.of(context).colorScheme.outline),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: _logs.isEmpty
                     ? const Center(child: Text('No events sent yet.'))
