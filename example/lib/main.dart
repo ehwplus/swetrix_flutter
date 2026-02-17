@@ -4,12 +4,12 @@ import 'package:swetrix_flutter/swetrix_flutter.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final client = SwetrixFlutterClient(
-    projectId: 'YOUR_PROJECT_ID',
+    projectId: 'KwBjnEj5H3YK', // put 'YOUR_PROJECT_ID' here
     userAgent: 'SwetrixExample/1.0.0',
     clientIpResolver: () async => '203.0.113.42',
     ipAddressCacheRule: IpAddressCacheRule.monthly,
     options: SwetrixOptions(
-      apiUrl: Uri.parse('https://analytics.ehwplus.com/log'),
+      apiUrl: Uri.parse('https://analytics.ehwplus.com/backend/log'),
       profileId: 'user_42',
     ),
   );
