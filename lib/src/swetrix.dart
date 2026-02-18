@@ -56,6 +56,7 @@ class Swetrix {
     String? page,
     bool unique = false,
     String? profileId,
+    String? locale,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
     SwetrixPerformanceMetrics? performanceMetrics,
@@ -66,6 +67,7 @@ class Swetrix {
     final payload = <String, Object?>{
       'pid': projectId,
       if (page != null) 'pg': page,
+      if (locale != null) 'lc': locale,
       if (unique) 'unique': true,
       if (effectiveProfileId != null) 'profileId': effectiveProfileId,
     };
@@ -96,6 +98,7 @@ class Swetrix {
     String? profileId,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
+    String? locale,
     SwetrixRequestOptions? requestOptions,
   }) async {
     _validateEventName(eventName);
@@ -105,6 +108,7 @@ class Swetrix {
     final payload = <String, Object?>{
       'pid': projectId,
       'ev': eventName,
+      if (locale != null) 'lc': locale,
       if (unique) 'unique': true,
       if (page != null) 'pg': page,
       if (effectiveProfileId != null) 'profileId': effectiveProfileId,

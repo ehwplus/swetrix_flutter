@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,7 @@ class SwetrixFlutterClient {
   Future<void> trackPageView({
     String? page,
     String? profileId,
+    Locale? locale,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
     SwetrixPerformanceMetrics? performanceMetrics,
@@ -66,6 +68,7 @@ class SwetrixFlutterClient {
     await _swetrix.trackPageView(
       page: page,
       profileId: profileId,
+      locale: locale?.toLanguageTag() ?? context?.locale,
       context: contextWithEnvironment,
       metadata: metaData,
       performanceMetrics: performanceMetrics,
@@ -80,6 +83,7 @@ class SwetrixFlutterClient {
     bool unique = false,
     String? page,
     String? profileId,
+    Locale? locale,
     SwetrixContext? context,
     Map<String, Object?>? metadata,
     SwetrixRequestOptions? requestOptions,
@@ -96,6 +100,7 @@ class SwetrixFlutterClient {
       unique: unique,
       page: page,
       profileId: profileId,
+      locale: locale?.toLanguageTag() ?? context?.locale,
       context: contextWithEnvironment,
       metadata: metadata,
       requestOptions: resolvedRequestOptions,

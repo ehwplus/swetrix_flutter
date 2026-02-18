@@ -15,7 +15,7 @@ class SwetrixContext {
     this.metadata,
   });
 
-  /// Locale of the visitor, e.g. `en_US`.
+  /// Locale of the visitor, e.g. `en-US`.
   final String? locale;
 
   /// Timezone of the visitor, e.g. `Europe/Berlin`.
