@@ -4,7 +4,7 @@ enum OperatingSystem {
   maxOS(nameFormatted: 'Mac OS X', specifierInsideUserAgent: 'Macintosh'),
   iOS(nameFormatted: 'iOS', specifierInsideUserAgent: 'iPhone'),
   iPadOS(nameFormatted: 'iPadOS', specifierInsideUserAgent: 'iPad'),
-  android(nameFormatted: 'Android', specifierInsideUserAgent: 'Android'),
+  android(nameFormatted: 'Android', specifierInsideUserAgent: 'Linux'),
   chromeOs(nameFormatted: 'ChromeOS', specifierInsideUserAgent: 'cros');
 
   const OperatingSystem({required this.nameFormatted, required this.specifierInsideUserAgent});

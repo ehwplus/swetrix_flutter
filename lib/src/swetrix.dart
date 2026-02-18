@@ -7,6 +7,7 @@ import 'package:swetrix_flutter/src/exceptions/forbidden_403_not_unique.dart';
 
 import 'context/swetrix_context.dart';
 import 'error_event.dart';
+import 'exceptions/forbidden_403_heartbeat_sent_before_event.dart';
 import 'options.dart';
 import 'performance_metrics.dart';
 import 'request_options.dart';
@@ -382,7 +383,12 @@ class Swetrix {
       final response = await _send(uri, payload, requestOptions: requestOptions);
       final statusCode = response.statusCode;
       if (statusCode == 403) {
-        if (response.body == 'The event was not saved because it was not unique while unique only param is provided') {
+        if (response.body.contains(
+            'The heartbeat was not saved because there is no session for this request. Please, send a pageview or custom event request first to initialise the session.')) {
+          throw Forbidden403HeartbeatSentBeforeEvent(response.body);
+        }
+        if (response.body
+            .contains('The event was not saved because it was not unique while unique only param is provided')) {
           // This error is usually returned when the unique parameter is set to true and the event is not unique,
           // i.e. the pageview event has already been recorded for this session.
           throw Forbidden403NotUnique(response.body);

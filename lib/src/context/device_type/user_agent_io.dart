@@ -60,9 +60,10 @@ String _buildUserAgent({
   final details =
       [manufacturer, deviceModel, deviceType].whereType<String>().where((value) => value.isNotEmpty).join('; ');
   final appSection = details.isEmpty ? appToken : '$appToken; $details';
+  final browserSection = '';
 
-  return 'Mozilla/5.0 (${OperatingSystem.maxOS.specifierInsideUserAgent}; $osToken) '
-      'AppleWebKit/605.1.15 (KHTML, like Gecko) '
-      '$appSection '
-      'Safari/605.1.15';
+  return 'Mozilla/5.0 (${os.specifierInsideUserAgent}; $osToken) '
+      'AppleWebKit/605.1.15 (KHTML, like Gecko)'
+      ' $appSection'
+      '${browserSection.isNotEmpty ? ' $browserSection' : ''}';
 }

@@ -16,8 +16,8 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
   @override
   void initState() {
     super.initState();
-    widget.client.startHeartbeat();
     widget.client.trackPageView(page: '/example/home').then((_) => _log('Tracked initial page view'));
+    widget.client.startHeartbeat();
   }
 
   @override
