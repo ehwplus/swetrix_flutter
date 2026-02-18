@@ -15,7 +15,7 @@ class SwetrixContext {
     this.metadata,
   });
 
-  /// Locale of the visitor, e.g. `en-US`.
+  /// Locale of the visitor, e.g. `en_US`.
   final String? locale;
 
   /// Timezone of the visitor, e.g. `Europe/Berlin`.
@@ -75,11 +75,9 @@ class SwetrixContext {
     };
   }
 
-  Map<String, Object?>? toPageMetadata() =>
-      metadata == null ? null : Map<String, Object?>.from(metadata!);
+  Map<String, Object?>? toPageMetadata() => metadata == null ? null : Map<String, Object?>.from(metadata!);
 
-  Map<String, Object?>? _mergeMeta(
-      Map<String, Object?>? base, Map<String, Object?>? override) {
+  Map<String, Object?>? _mergeMeta(Map<String, Object?>? base, Map<String, Object?>? override) {
     if (override == null) {
       return base;
     }

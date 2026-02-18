@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import 'context/context.dart';
+import 'context/swetrix_context.dart';
 import 'request_options.dart';
 
 /// Global configuration for the Swetrix client.

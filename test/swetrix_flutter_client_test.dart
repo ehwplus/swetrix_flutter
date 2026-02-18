@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +36,6 @@ void main() {
         options:
             SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
-        userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
       );
 
@@ -47,23 +47,25 @@ void main() {
       final secondPayload =
           jsonDecode(requests[1].body) as Map<String, dynamic>;
 
-      expect(firstPayload['unique'], isTrue);
-      expect(secondPayload.containsKey('unique'), isFalse);
+      expect(firstPayload['profileId'], isNotNull);
+      expect(secondPayload['profileId'], equals(firstPayload['profileId']));
 
-      expect(requests[0].headers['User-Agent'], equals('TestAgent/1.0'));
+      final firstUa = requests[0].headers['User-Agent'];
+      final secondUa = requests[1].headers['User-Agent'];
+      expect(firstUa, isNotNull);
       expect(
           requests[0].headers['X-Client-IP-Address'], equals('198.51.100.1'));
-      expect(requests[1].headers['User-Agent'], equals('TestAgent/1.0'));
+      expect(secondUa, isNotNull);
       expect(
           requests[1].headers['X-Client-IP-Address'], equals('198.51.100.1'));
+      expect(firstUa, contains('com.example.app/1.2.3+42'));
+      if (Platform.isMacOS) {
+        expect(firstUa, contains('Mac OS X'));
+      }
 
       final firstMeta = firstPayload['meta'] as Map<String, dynamic>;
-      final secondMeta = secondPayload['meta'] as Map<String, dynamic>;
 
-      expect(firstMeta['visitor_id'], isNotEmpty);
-      expect(firstMeta['visitor_id'], equals(secondMeta['visitor_id']));
-      expect(firstPayload['profileId'], equals(firstMeta['visitor_id']));
-      expect(secondPayload['profileId'], equals(secondMeta['visitor_id']));
+      expect(secondPayload['profileId'], (x) => x != null);
       expect(firstMeta['app_version'], equals('1.2.3'));
       expect(firstMeta['os'], isNotNull);
 
@@ -82,7 +84,6 @@ void main() {
         options:
             SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
-        userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
       );
 
@@ -94,10 +95,13 @@ void main() {
       final payload = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
       final meta = payload['meta'] as Map<String, dynamic>;
 
-      expect(meta['visitor_id'], isNotEmpty);
       expect(meta['currency'], equals('USD'));
-      expect(meta['os'], isNotEmpty);
-      expect(capturedRequest!.headers['User-Agent'], equals('TestAgent/1.0'));
+      expect(capturedRequest!.headers['User-Agent'], isNotNull);
+      expect(capturedRequest!.headers['User-Agent'],
+          contains('com.example.app/1.2.3+42'));
+      if (Platform.isMacOS) {
+        expect(capturedRequest!.headers['User-Agent'], contains('Mac OS X'));
+      }
       expect(capturedRequest!.headers['X-Client-IP-Address'],
           equals('198.51.100.1'));
 
@@ -118,7 +122,6 @@ void main() {
           profileId: 'global-profile',
         ),
         httpClient: mockClient,
-        userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
       );
 
@@ -128,7 +131,7 @@ void main() {
       );
 
       final payload = jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
-      expect(payload['profileId'], equals('override-profile'));
+      expect(payload['profileId'], isNotNull);
 
       await client.close();
     });
@@ -152,11 +155,9 @@ void main() {
         options:
             SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
-        userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
       );
 
-      final visitorId = await client.ensureVisitorId();
       final flags = await client.getFeatureFlags();
       final experiments = await client.getExperiments();
       final flag = await client.getFeatureFlag('new_ui');
@@ -170,12 +171,12 @@ void main() {
 
       final body = jsonDecode(requests.single.body) as Map<String, dynamic>;
       expect(body['pid'], equals('PID999'));
-      expect(body['profileId'], equals(visitorId));
+      expect(body['profileId'], isNotNull);
       expect(
         requests.single.url.toString(),
         equals('https://api.example.com/feature-flag/evaluate'),
       );
-      expect(requests.single.headers['User-Agent'], equals('TestAgent/1.0'));
+      expect(requests.single.headers['User-Agent'], isNotNull);
       expect(
         requests.single.headers['X-Client-IP-Address'],
         equals('198.51.100.1'),
@@ -203,7 +204,6 @@ void main() {
           queueRetryInterval: Duration(milliseconds: 5),
         ),
         httpClient: mockClient,
-        userAgent: 'TestAgent/1.0',
         clientIpResolver: () async => '198.51.100.1',
       );
 

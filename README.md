@@ -10,6 +10,7 @@ Use it to track page views, custom events, heartbeats, and application errors fr
 - Visitor identifier persisted across sessions to keep repeat users deduplicated
 - `profileId` support for stable MAU tracking (global option or per-event override)
 - Automatically injects `User-Agent` and `X-Client-IP-Address` headers (configurable resolver) so Swetrix can identify unique visitors reliably
+- Uses `navigator.userAgent` on web and a parser-friendly UA format on macOS for better OS/browser attribution in Swetrix
 - Automatic in-memory request queue with retries when sending fails (e.g. offline/network issues)
 - Error tracking support aligned with the Swetrix dashboard
 - Heartbeat scheduler to keep live visitor counters up to date
@@ -88,6 +89,15 @@ The `SwetrixFlutterClient` automatically:
 > **Important:** When using the lower-level `Swetrix` client directly you must provide accurate `User-Agent` and `X-Client-IP-Address` headers yourself to keep unique visitor metrics meaningful. See the [Events API reference](https://docs.swetrix.com/events-api) for full details.
 
 By default the Flutter helper performs a single request to `https://api.ipify.org` to determine the public IP address. You can supply your own resolver if you prefer a different service.
+
+### macOS note (App Sandbox)
+
+If your macOS app has App Sandbox enabled, make sure the host app entitlements include:
+
+- `com.apple.security.network.client = true` (required for outgoing HTTPS requests)
+- `com.apple.security.network.server = true` (optional, usually needed for debug tooling)
+
+Without `network.client`, requests can fail with `SocketException: Operation not permitted (errno = 1)`.
 
 ## Advanced usage
 

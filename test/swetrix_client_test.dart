@@ -35,8 +35,7 @@ void main() {
           metadata: {'plan': 'enterprise', 'level': 2},
         ),
         metadata: const {'cta': 'signup'},
-        performanceMetrics:
-            const SwetrixPerformanceMetrics(dns: 5, response: 12),
+        performanceMetrics: const SwetrixPerformanceMetrics(dns: 5, response: 12),
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
@@ -47,8 +46,7 @@ void main() {
       expect(body['lc'], equals('en-US'));
       expect(body['ref'], equals('https://ref.example'));
       expect(body['perf'], equals({'dns': 5, 'response': 12}));
-      expect(body['meta'],
-          equals({'plan': 'enterprise', 'level': '2', 'cta': 'signup'}));
+      expect(body['meta'], equals({'plan': 'enterprise', 'level': '2', 'cta': 'signup'}));
       expect(capturedRequest.headers['User-Agent'], equals('UA/1.0'));
 
       await client.close();
@@ -72,28 +70,15 @@ void main() {
         page: '/pricing',
         unique: true,
         profileId: 'event-profile',
-        metadata: const {
-          'plan': 'pro',
-          'value': 9.99,
-          'eligible': true,
-          'missing': null
-        },
+        metadata: const {'plan': 'pro', 'value': 9.99, 'eligible': true, 'missing': null},
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
-      expect(
-          capturedRequest.url.toString(), 'https://api.swetrix.com/log/custom');
+      expect(capturedRequest.url.toString(), 'https://api.swetrix.com/backend/log/custom');
       expect(body['ev'], equals('Signup_Success'));
       expect(body['unique'], isTrue);
       expect(body['profileId'], equals('event-profile'));
-      expect(
-          body['meta'],
-          equals({
-            'plan': 'pro',
-            'value': '9.99',
-            'eligible': 'true',
-            'missing': 'null'
-          }));
+      expect(body['meta'], equals({'plan': 'pro', 'value': '9.99', 'eligible': 'true', 'missing': 'null'}));
 
       await client.close();
     });
@@ -135,8 +120,7 @@ void main() {
       );
 
       expect(capturedRequest.headers['User-Agent'], equals('Override-UA'));
-      expect(capturedRequest.headers['X-Client-IP-Address'],
-          equals('203.0.113.1'));
+      expect(capturedRequest.headers['X-Client-IP-Address'], equals('203.0.113.1'));
       expect(capturedRequest.headers['X-Default'], equals('value'));
       expect(capturedRequest.headers['X-Override'], equals('yes'));
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
@@ -160,15 +144,13 @@ void main() {
 
       final client = Swetrix(
         projectId: 'PID123',
-        options:
-            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        options: SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
       );
 
       final flags = await client.getFeatureFlags(profileId: 'user-1');
       final experiments = await client.getExperiments(profileId: 'user-1');
-      final singleFlag =
-          await client.getFeatureFlag('new_checkout', profileId: 'user-1');
+      final singleFlag = await client.getFeatureFlag('new_checkout', profileId: 'user-1');
 
       expect(flags, equals({'new_checkout': true}));
       expect(experiments, equals({'checkout-test': 'variant-a'}));
@@ -179,8 +161,7 @@ void main() {
         'https://api.example.com/feature-flag/evaluate',
       );
 
-      final requestBody =
-          jsonDecode(requests.single.body) as Map<String, dynamic>;
+      final requestBody = jsonDecode(requests.single.body) as Map<String, dynamic>;
       expect(requestBody['pid'], equals('PID123'));
       expect(requestBody['profileId'], equals('user-1'));
 
@@ -220,8 +201,7 @@ void main() {
 
       final client = Swetrix(
         projectId: 'PID123',
-        options:
-            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        options: SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
         httpClient: mockClient,
       );
 
@@ -231,16 +211,13 @@ void main() {
       expect(profileId, equals('api-profile'));
       expect(sessionId, equals('api-session'));
       expect(requests, hasLength(2));
-      expect(
-          requests[0].url.toString(), 'https://api.example.com/log/profile-id');
-      expect(
-          requests[1].url.toString(), 'https://api.example.com/log/session-id');
+      expect(requests[0].url.toString(), 'https://api.example.com/log/profile-id');
+      expect(requests[1].url.toString(), 'https://api.example.com/log/session-id');
 
       await client.close();
     });
 
-    test('queues failed requests and flushes on next successful call',
-        () async {
+    test('queues failed requests and flushes on next successful call', () async {
       final requests = <http.Request>[];
       var offline = true;
 

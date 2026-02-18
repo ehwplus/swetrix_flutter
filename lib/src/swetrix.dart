@@ -3,8 +3,9 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:swetrix_flutter/src/exceptions/forbidden_403_not_unique.dart';
 
-import 'context/context.dart';
+import 'context/swetrix_context.dart';
 import 'error_event.dart';
 import 'options.dart';
 import 'performance_metrics.dart';
@@ -379,13 +380,20 @@ class Swetrix {
     final uri = _resolve(path);
     try {
       final response = await _send(uri, payload, requestOptions: requestOptions);
-      if (response.statusCode >= 400) {
+      final statusCode = response.statusCode;
+      if (statusCode == 403) {
+        if (response.body == 'The event was not saved because it was not unique while unique only param is provided') {
+          // This error is usually returned when the unique parameter is set to true and the event is not unique,
+          // i.e. the pageview event has already been recorded for this session.
+          throw Forbidden403NotUnique(response.body);
+        }
+      } else if (statusCode >= 400) {
         final exception = SwetrixException(
           'Request to ${uri.path} failed',
-          statusCode: response.statusCode,
+          statusCode: statusCode,
           body: response.body,
         );
-        if (_shouldQueueStatusCode(response.statusCode)) {
+        if (_shouldQueueStatusCode(statusCode)) {
           _enqueueRequest(path, payload, requestOptions);
           _scheduleQueueRetry();
           return;
