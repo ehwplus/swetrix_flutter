@@ -1,16 +1,20 @@
+import 'package:flutter/foundation.dart';
+
 enum OperatingSystem {
-  windows(nameFormatted: 'Windows', specifierInsideUserAgent: 'Windows nt'),
-  linux(nameFormatted: 'Linux', specifierInsideUserAgent: 'Linux'),
-  maxOS(nameFormatted: 'Mac OS X', specifierInsideUserAgent: 'Macintosh'),
-  iOS(nameFormatted: 'iOS', specifierInsideUserAgent: 'iPhone'),
-  iPadOS(nameFormatted: 'iPadOS', specifierInsideUserAgent: 'iPad'),
-  android(nameFormatted: 'Android', specifierInsideUserAgent: 'Linux'),
-  chromeOs(nameFormatted: 'ChromeOS', specifierInsideUserAgent: 'cros');
+  windows(osName: 'Windows', specifierInsideUserAgent: ''),
+  linux(osName: 'Linux x86_64', specifierInsideUserAgent: 'X11'),
+  macOS(osName: 'Intel Mac OS X', specifierInsideUserAgent: 'Macintosh'),
+  iOS(osName: 'iPhone OS', specifierInsideUserAgent: 'iPhone'),
+  iPadOS(osName: 'Intel Mac OS X iPad OS', specifierInsideUserAgent: 'Macintosh'),
+  android(osName: 'Android', specifierInsideUserAgent: 'Linux'),
+  chromeOs(osName: 'CrOS x86_64', specifierInsideUserAgent: 'X11');
 
-  const OperatingSystem({required this.nameFormatted, required this.specifierInsideUserAgent});
+  const OperatingSystem({required this.osName, required this.specifierInsideUserAgent});
 
-  final String nameFormatted;
+  /// "Mozilla/5.0 ($[specifierInsideUserAgent]; $[osName] $osVersion) ..."
+  final String osName;
 
+  /// "Mozilla/5.0 ($[specifierInsideUserAgent]; $[osName] $osVersion) ..."
   final String specifierInsideUserAgent;
 
   static OperatingSystem? fromUserAgent(String? userAgent) {
@@ -28,7 +32,7 @@ enum OperatingSystem {
     }
 
     for (final os in OperatingSystem.values) {
-      if (value.toLowerCase() == os.nameFormatted.toLowerCase()) {
+      if (value.toLowerCase() == os.osName.toLowerCase()) {
         return os;
       }
       if (value.toLowerCase() == os.specifierInsideUserAgent.toLowerCase()) {
@@ -39,6 +43,9 @@ enum OperatingSystem {
       }
     }
 
+    if (kDebugMode) {
+      debugPrint('Unknown operating system "$value". OperatingSystem.fromString returning null.');
+    }
     return null;
   }
 }
