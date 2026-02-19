@@ -23,23 +23,10 @@ class SwetrixVisitorStore {
     return generated;
   }
 
-  Future<bool> hasTrackedUnique(String projectId) async {
-    final prefs = await _sharedPrefs;
-    return prefs.getBool(_uniqueKey(projectId)) ?? false;
-  }
-
-  Future<void> markUniqueTracked(String projectId) async {
-    final prefs = await _sharedPrefs;
-    await prefs.setBool(_uniqueKey(projectId), true);
-  }
-
   Future<void> reset(String projectId) async {
     final prefs = await _sharedPrefs;
     await prefs.remove(_visitorKey(projectId));
-    await prefs.remove(_uniqueKey(projectId));
   }
 
   String _visitorKey(String projectId) => 'swetrix_visitor_id_$projectId';
-
-  String _uniqueKey(String projectId) => 'swetrix_unique_tracked_$projectId';
 }

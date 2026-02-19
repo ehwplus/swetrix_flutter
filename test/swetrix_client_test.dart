@@ -18,6 +18,7 @@ void main() {
         projectId: 'PID123',
         options: SwetrixOptions(
           apiUrl: Uri.parse('https://api.example.com/log'),
+          profileId: 'profile-global',
           defaultContext: const SwetrixContext(
             locale: 'en-US',
             metadata: {'plan': 'pro'},
@@ -39,9 +40,10 @@ void main() {
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
-      expect(capturedRequest.url.toString(), 'https://api.example.com/log/');
+      expect(capturedRequest.url.toString(), 'https://api.example.com/log');
       expect(body['pid'], equals('PID123'));
       expect(body['pg'], equals('/home'));
+      expect(body['profileId'], equals('profile-global'));
       expect(body['lc'], equals('en-US'));
       expect(body['ref'], equals('https://ref.example'));
       expect(body['perf'], equals({'dns': 5, 'response': 12}));
@@ -61,6 +63,7 @@ void main() {
 
       final client = Swetrix(
         projectId: 'PID123',
+        options: const SwetrixOptions(profileId: 'global-profile'),
         httpClient: mockClient,
       );
 
@@ -68,6 +71,7 @@ void main() {
         'Signup_Success',
         page: '/pricing',
         unique: true,
+        profileId: 'event-profile',
         metadata: const {
           'plan': 'pro',
           'value': 9.99,
@@ -77,10 +81,11 @@ void main() {
       );
 
       final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
-      expect(
-          capturedRequest.url.toString(), 'https://api.swetrix.com/log/custom');
+      expect(capturedRequest.url.toString(),
+          'https://api.swetrix.com/backend/log/custom');
       expect(body['ev'], equals('Signup_Success'));
       expect(body['unique'], isTrue);
+      expect(body['profileId'], equals('event-profile'));
       expect(
           body['meta'],
           equals({
@@ -112,6 +117,7 @@ void main() {
       final client = Swetrix(
         projectId: 'PID',
         options: const SwetrixOptions(
+          profileId: 'heartbeat-profile',
           requestOptions: SwetrixRequestOptions(
             headers: {'X-Default': 'value'},
             userAgent: 'Default-UA',
@@ -133,6 +139,159 @@ void main() {
           equals('203.0.113.1'));
       expect(capturedRequest.headers['X-Default'], equals('value'));
       expect(capturedRequest.headers['X-Override'], equals('yes'));
+      final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
+      expect(body['profileId'], equals('heartbeat-profile'));
+
+      await client.close();
+    });
+
+    test('fetches and caches feature flags and experiments', () async {
+      final requests = <http.Request>[];
+      final mockClient = MockClient((request) async {
+        requests.add(request);
+        return http.Response(
+          jsonEncode({
+            'flags': {'new_checkout': true},
+            'experiments': {'checkout-test': 'variant-a'},
+          }),
+          200,
+        );
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options:
+            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        httpClient: mockClient,
+      );
+
+      final flags = await client.getFeatureFlags(profileId: 'user-1');
+      final experiments = await client.getExperiments(profileId: 'user-1');
+      final singleFlag =
+          await client.getFeatureFlag('new_checkout', profileId: 'user-1');
+
+      expect(flags, equals({'new_checkout': true}));
+      expect(experiments, equals({'checkout-test': 'variant-a'}));
+      expect(singleFlag, isTrue);
+      expect(requests, hasLength(1));
+      expect(
+        requests.single.url.toString(),
+        'https://api.example.com/feature-flag/evaluate',
+      );
+
+      final requestBody =
+          jsonDecode(requests.single.body) as Map<String, dynamic>;
+      expect(requestBody['pid'], equals('PID123'));
+      expect(requestBody['profileId'], equals('user-1'));
+
+      await client.getFeatureFlags(profileId: 'user-1', forceRefresh: true);
+      expect(requests, hasLength(2));
+
+      await client.close();
+    });
+
+    test('returns configured profile id without network call', () async {
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(profileId: 'configured-profile'),
+        httpClient: MockClient((_) async {
+          fail('Network should not be called when profileId is configured.');
+        }),
+      );
+
+      final profileId = await client.getProfileId();
+      expect(profileId, equals('configured-profile'));
+
+      await client.close();
+    });
+
+    test('fetches profile and session ids from API', () async {
+      final requests = <http.Request>[];
+      final mockClient = MockClient((request) async {
+        requests.add(request);
+        if (request.url.path == '/log/profile-id') {
+          return http.Response(jsonEncode({'profileId': 'api-profile'}), 200);
+        }
+        if (request.url.path == '/log/session-id') {
+          return http.Response(jsonEncode({'sessionId': 'api-session'}), 200);
+        }
+        return http.Response('not found', 404);
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options:
+            SwetrixOptions(apiUrl: Uri.parse('https://api.example.com/log')),
+        httpClient: mockClient,
+      );
+
+      final profileId = await client.getProfileId();
+      final sessionId = await client.getSessionId();
+
+      expect(profileId, equals('api-profile'));
+      expect(sessionId, equals('api-session'));
+      expect(requests, hasLength(2));
+      expect(
+          requests[0].url.toString(), 'https://api.example.com/log/profile-id');
+      expect(
+          requests[1].url.toString(), 'https://api.example.com/log/session-id');
+
+      await client.close();
+    });
+
+    test('queues failed requests and flushes on next successful call',
+        () async {
+      final requests = <http.Request>[];
+      var offline = true;
+
+      final mockClient = MockClient((request) async {
+        if (offline) {
+          throw http.ClientException('offline');
+        }
+        requests.add(request);
+        return http.Response('{}', 201);
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(
+          queueFailedRequests: true,
+          maxQueueSize: 10,
+          queueRetryInterval: Duration(milliseconds: 5),
+        ),
+        httpClient: mockClient,
+      );
+
+      await client.trackEvent('WhileOffline');
+      expect(client.pendingQueueLength, equals(1));
+
+      offline = false;
+      await client.trackEvent('AfterReconnect');
+
+      expect(client.pendingQueueLength, equals(0));
+      expect(requests, hasLength(2));
+      final firstBody = jsonDecode(requests[0].body) as Map<String, dynamic>;
+      final secondBody = jsonDecode(requests[1].body) as Map<String, dynamic>;
+      expect(firstBody['ev'], equals('WhileOffline'));
+      expect(secondBody['ev'], equals('AfterReconnect'));
+
+      await client.close();
+    });
+
+    test('does not queue when queueing is disabled', () async {
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(queueFailedRequests: false),
+        httpClient: MockClient((_) async {
+          throw http.ClientException('offline');
+        }),
+      );
+
+      await expectLater(
+        client.trackEvent('WillFail'),
+        throwsA(isA<http.ClientException>()),
+      );
+      expect(client.pendingQueueLength, equals(0));
 
       await client.close();
     });
