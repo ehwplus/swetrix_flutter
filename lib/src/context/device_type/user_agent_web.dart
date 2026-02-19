@@ -13,8 +13,11 @@ Future<String> resolveUserAgentForPlatform({
     return browserUserAgent;
   }
 
-  final appVersion = packageInfo.version.isEmpty ? '0.0.0' : packageInfo.version;
+  final appVersion =
+      packageInfo.version.isEmpty ? '0.0.0' : packageInfo.version;
   final buildNumber = packageInfo.buildNumber;
-  final packageId = packageInfo.packageName.isNotEmpty ? packageInfo.packageName : 'flutter_app';
+  final packageId = packageInfo.packageName.isNotEmpty
+      ? packageInfo.packageName
+      : 'flutter_app';
   return '$packageId/$appVersion+$buildNumber';
 }

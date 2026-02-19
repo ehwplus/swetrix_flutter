@@ -9,13 +9,17 @@ import 'resolve_device_type.dart';
 Future<String> resolveUserAgentForPlatform({
   required PackageInfo packageInfo,
 }) async {
-  final appVersion = packageInfo.version.isEmpty ? '0.0.0' : packageInfo.version;
+  final appVersion =
+      packageInfo.version.isEmpty ? '0.0.0' : packageInfo.version;
   final buildNumber = packageInfo.buildNumber;
-  final packageId = packageInfo.packageName.isNotEmpty ? packageInfo.packageName : 'flutter_app';
+  final packageId = packageInfo.packageName.isNotEmpty
+      ? packageInfo.packageName
+      : 'flutter_app';
 
   final productVersion = '$appVersion+$buildNumber';
   final deviceInfo = await resolveDeviceInfo();
-  final OperatingSystem? os = OperatingSystem.fromString(deviceInfo.os ?? Platform.operatingSystem);
+  final OperatingSystem? os =
+      OperatingSystem.fromString(deviceInfo.os ?? Platform.operatingSystem);
   final osVersion = deviceInfo.osVersion;
   final manufacturer = deviceInfo.manufacturer;
   final deviceModel = deviceInfo.deviceModel;
@@ -33,12 +37,13 @@ Future<String> resolveUserAgentForPlatform({
     );
   }
 
-  final systemInformation = [os, osVersion, manufacturer, deviceModel, deviceType]
-      .nonNulls
-      .toList()
-      .toString()
-      .replaceAll('[', '')
-      .replaceAll(']', '');
+  final systemInformation = [
+    os,
+    osVersion,
+    manufacturer,
+    deviceModel,
+    deviceType
+  ].nonNulls.toList().toString().replaceAll('[', '').replaceAll(']', '');
   final platform = ' Dart ${Platform.version.split(' (stable) ')[0]}';
   final appSection = ' $packageId/$productVersion';
 
@@ -55,13 +60,17 @@ String _buildUserAgent({
   String? deviceType,
 }) {
   final normalisedVersion = osVersion?.replaceAll('.', '_');
-  final osToken =
-      (normalisedVersion == null || normalisedVersion.isEmpty) ? os.osName : '${os.osName} $normalisedVersion';
+  final osToken = (normalisedVersion == null || normalisedVersion.isEmpty)
+      ? os.osName
+      : '${os.osName} $normalisedVersion';
   final appSection = '$packageId/$productVersion';
-  final details = [os.specifierInsideUserAgent, osToken, manufacturer, deviceModel, deviceType]
-      .whereType<String>()
-      .where((value) => value.isNotEmpty)
-      .join('; ');
+  final details = [
+    os.specifierInsideUserAgent,
+    osToken,
+    manufacturer,
+    deviceModel,
+    deviceType
+  ].whereType<String>().where((value) => value.isNotEmpty).join('; ');
 
   String resolveBrowserSection() {
     switch (os) {

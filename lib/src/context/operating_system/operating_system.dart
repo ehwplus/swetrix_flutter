@@ -5,11 +5,13 @@ enum OperatingSystem {
   linux(osName: 'Linux x86_64', specifierInsideUserAgent: 'X11'),
   macOS(osName: 'Intel Mac OS X', specifierInsideUserAgent: 'Macintosh'),
   iOS(osName: 'iPhone OS', specifierInsideUserAgent: 'iPhone'),
-  iPadOS(osName: 'Intel Mac OS X iPad OS', specifierInsideUserAgent: 'Macintosh'),
+  iPadOS(
+      osName: 'Intel Mac OS X iPad OS', specifierInsideUserAgent: 'Macintosh'),
   android(osName: 'Android', specifierInsideUserAgent: 'Linux'),
   chromeOs(osName: 'CrOS x86_64', specifierInsideUserAgent: 'X11');
 
-  const OperatingSystem({required this.osName, required this.specifierInsideUserAgent});
+  const OperatingSystem(
+      {required this.osName, required this.specifierInsideUserAgent});
 
   /// "Mozilla/5.0 ($[specifierInsideUserAgent]; $[osName] $osVersion) ..."
   final String osName;
@@ -19,7 +21,10 @@ enum OperatingSystem {
 
   static OperatingSystem? fromUserAgent(String? userAgent) {
     for (final os in OperatingSystem.values) {
-      if (userAgent != null && userAgent.toLowerCase().contains(os.specifierInsideUserAgent.toLowerCase())) {
+      if (userAgent != null &&
+          userAgent
+              .toLowerCase()
+              .contains(os.specifierInsideUserAgent.toLowerCase())) {
         return os;
       }
     }
@@ -44,7 +49,8 @@ enum OperatingSystem {
     }
 
     if (kDebugMode) {
-      debugPrint('Unknown operating system "$value". OperatingSystem.fromString returning null.');
+      debugPrint(
+          'Unknown operating system "$value". OperatingSystem.fromString returning null.');
     }
     return null;
   }

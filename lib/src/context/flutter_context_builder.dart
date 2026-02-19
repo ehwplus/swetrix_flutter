@@ -36,7 +36,8 @@ class SwetrixContextBuilder {
     final metadata = <String, Object?>{
       'os': os,
       if (osVersion != null) 'os_version': osVersion,
-      if (deviceInfo.manufacturer != null) 'manufacturer': deviceInfo.manufacturer,
+      if (deviceInfo.manufacturer != null)
+        'manufacturer': deviceInfo.manufacturer,
       if (deviceInfo.deviceModel != null) 'deviceModel': deviceInfo.deviceModel,
       'app_version': packageInfo.version,
       'build_number': packageInfo.buildNumber,

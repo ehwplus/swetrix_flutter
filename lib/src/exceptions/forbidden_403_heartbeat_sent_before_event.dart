@@ -7,7 +7,8 @@ class Forbidden403HeartbeatSentBeforeEvent implements Exception {
 
   @override
   String toString() {
-    final buffer = StringBuffer('Forbidden403HeartbeatSentBeforeEvent: $message');
+    final buffer =
+        StringBuffer('Forbidden403HeartbeatSentBeforeEvent: $message');
     buffer.write(' (statusCode: 403');
     if (body != null && body!.isNotEmpty) {
       buffer.write(', body: $body');

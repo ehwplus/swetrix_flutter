@@ -1,6 +1,8 @@
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'user_agent_stub.dart' if (dart.library.io) 'user_agent_io.dart' if (dart.library.html) 'user_agent_web.dart';
+import 'user_agent_stub.dart'
+    if (dart.library.io) 'user_agent_io.dart'
+    if (dart.library.html) 'user_agent_web.dart';
 
 /// example value for Android (emulator):
 /// "Mozilla/5.0 (Linux; Android 16) AppleWebKit/605.1.15 (KHTML, like Gecko) com.example.swetrix_example/0.1.0+1; Google; sdk_gphone64_arm64; tablet"

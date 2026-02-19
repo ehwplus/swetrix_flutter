@@ -3,7 +3,9 @@ import 'package:uuid/uuid.dart';
 
 class SwetrixVisitorStore {
   SwetrixVisitorStore({SharedPreferences? sharedPreferences})
-      : _sharedPrefs = sharedPreferences != null ? Future.value(sharedPreferences) : SharedPreferences.getInstance();
+      : _sharedPrefs = sharedPreferences != null
+            ? Future.value(sharedPreferences)
+            : SharedPreferences.getInstance();
 
   final Future<SharedPreferences> _sharedPrefs;
   static const _uuid = Uuid();

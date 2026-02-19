@@ -9,6 +9,8 @@ export 'src/exceptions/swetrix_exception.dart';
 export 'src/exceptions/forbidden_403_heartbeat_sent_before_event.dart';
 export 'src/exceptions/forbidden_403_not_unique.dart';
 
-export 'src/context/flutter_context_builder.dart' show SwetrixContextBuilder, SwetrixFlutterEnvironment;
-export 'src/swetrix_flutter_client.dart' show SwetrixFlutterClient, SharedPreferencesFactory;
+export 'src/context/flutter_context_builder.dart'
+    show SwetrixContextBuilder, SwetrixFlutterEnvironment;
+export 'src/swetrix_flutter_client.dart'
+    show SwetrixFlutterClient, SharedPreferencesFactory;
 export 'src/context/visitor/visitor_store.dart' show SwetrixVisitorStore;

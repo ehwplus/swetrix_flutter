@@ -22,9 +22,11 @@ class SwetrixFlutterClient {
     http.Client? httpClient,
     SharedPreferencesFactory? sharedPreferencesFactory,
     Future<String?> Function()? clientIpResolver,
-  })  : _swetrix = Swetrix(projectId: projectId, options: options, httpClient: httpClient),
+  })  : _swetrix = Swetrix(
+            projectId: projectId, options: options, httpClient: httpClient),
         _projectId = projectId,
-        _visitorStore = SwetrixVisitorStore(sharedPreferences: sharedPreferencesFactory?.call()),
+        _visitorStore = SwetrixVisitorStore(
+            sharedPreferences: sharedPreferencesFactory?.call()),
         _clientIpResolver = clientIpResolver ?? _defaultClientIpResolver;
 
   final Swetrix _swetrix;
@@ -46,7 +48,8 @@ class SwetrixFlutterClient {
 
   Future<void> reset() => _visitorStore.reset(projectId);
 
-  Future<String> _resolveVisitorId() => _visitorStore.ensureVisitorId(projectId);
+  Future<String> _resolveVisitorId() =>
+      _visitorStore.ensureVisitorId(projectId);
 
   Future<void> trackPageView({
     String? page,
@@ -238,7 +241,8 @@ class SwetrixFlutterClient {
 
   Future<void> flushQueue() => _swetrix.flushQueue();
 
-  SwetrixContext _mergeContext(SwetrixContext generated, SwetrixContext? override) {
+  SwetrixContext _mergeContext(
+      SwetrixContext generated, SwetrixContext? override) {
     if (override == null) {
       return generated;
     }
@@ -265,19 +269,23 @@ class SwetrixFlutterClient {
     return _resolveVisitorId();
   }
 
-  Future<SwetrixRequestOptions?> _composeRequestOptions(SwetrixRequestOptions? overrides) async {
+  Future<SwetrixRequestOptions?> _composeRequestOptions(
+      SwetrixRequestOptions? overrides) async {
     final userAgent = await _resolveUserAgent();
     final ipAddress = await _resolveClientIpAddress();
 
     SwetrixRequestOptions? merged = overrides;
 
-    if ((userAgent != null && userAgent.isNotEmpty) || (ipAddress != null && ipAddress.isNotEmpty)) {
+    if ((userAgent != null && userAgent.isNotEmpty) ||
+        (ipAddress != null && ipAddress.isNotEmpty)) {
       final base = SwetrixRequestOptions(
         userAgent: userAgent,
         clientIpAddress: ipAddress,
         headers: {
-          if (userAgent != null && userAgent.isNotEmpty) 'User-Agent': userAgent,
-          if (ipAddress != null && ipAddress.isNotEmpty) 'X-Client-IP-Address': ipAddress,
+          if (userAgent != null && userAgent.isNotEmpty)
+            'User-Agent': userAgent,
+          if (ipAddress != null && ipAddress.isNotEmpty)
+            'X-Client-IP-Address': ipAddress,
         },
       );
 
@@ -290,7 +298,8 @@ class SwetrixFlutterClient {
 
     final headers = <String, String>{
       ...merged.headers,
-      if (merged.userAgent != null && merged.userAgent!.isNotEmpty) 'User-Agent': merged.userAgent!,
+      if (merged.userAgent != null && merged.userAgent!.isNotEmpty)
+        'User-Agent': merged.userAgent!,
       if (merged.clientIpAddress != null && merged.clientIpAddress!.isNotEmpty)
         'X-Client-IP-Address': merged.clientIpAddress!,
     };
@@ -332,7 +341,8 @@ class SwetrixFlutterClient {
 
   static Future<String?> _defaultClientIpResolver() async {
     try {
-      final response = await http.get(Uri.parse('https://api.ipify.org?format=text'));
+      final response =
+          await http.get(Uri.parse('https://api.ipify.org?format=text'));
       if (response.statusCode == 200) {
         final ip = response.body.trim();
         if (ip.isNotEmpty) {

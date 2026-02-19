@@ -23,7 +23,8 @@ class Swetrix {
         _client = httpClient ?? http.Client(),
         _ownsClient = httpClient == null,
         _baseUrl = _normaliseBase(_resolveBase(options.apiUrl)),
-        _apiBaseUrl = _normaliseApiBase(_resolveApiBase(_resolveBase(options.apiUrl)));
+        _apiBaseUrl =
+            _normaliseApiBase(_resolveApiBase(_resolveBase(options.apiUrl)));
 
   final String projectId;
   final http.Client _client;
@@ -36,10 +37,12 @@ class Swetrix {
   String? _heartbeatProfileId;
   Timer? _queueRetryTimer;
   bool _isFlushingQueue = false;
-  final ListQueue<_SwetrixQueuedRequest> _requestQueue = ListQueue<_SwetrixQueuedRequest>();
+  final ListQueue<_SwetrixQueuedRequest> _requestQueue =
+      ListQueue<_SwetrixQueuedRequest>();
   _SwetrixFeatureCache? _featureCache;
 
-  static final Uri _defaultApiUrl = Uri.parse('https://api.swetrix.com/backend/log');
+  static final Uri _defaultApiUrl =
+      Uri.parse('https://api.swetrix.com/backend/log');
   static const Duration _defaultFeatureCacheDuration = Duration(minutes: 5);
 
   SwetrixOptions get options => _options;
@@ -47,7 +50,8 @@ class Swetrix {
   set options(SwetrixOptions value) {
     _options = value;
     _baseUrl = _normaliseBase(_resolveBase(value.apiUrl));
-    _apiBaseUrl = _normaliseApiBase(_resolveApiBase(_resolveBase(value.apiUrl)));
+    _apiBaseUrl =
+        _normaliseApiBase(_resolveApiBase(_resolveBase(value.apiUrl)));
     _featureCache = null;
   }
 
@@ -75,7 +79,8 @@ class Swetrix {
     Map<String, Object?>? mergedMetadata = metadata;
     if (effectiveContext != null) {
       payload.addAll(effectiveContext.toPayload());
-      mergedMetadata = _mergeMetadata(effectiveContext.toPageMetadata(), mergedMetadata);
+      mergedMetadata =
+          _mergeMetadata(effectiveContext.toPageMetadata(), mergedMetadata);
     }
 
     if (mergedMetadata != null && mergedMetadata.isNotEmpty) {
@@ -178,7 +183,8 @@ class Swetrix {
     if (!forceRefresh &&
         cache != null &&
         cache.profileId == effectiveProfileId &&
-        DateTime.now().difference(cache.timestamp) < _defaultFeatureCacheDuration) {
+        DateTime.now().difference(cache.timestamp) <
+            _defaultFeatureCacheDuration) {
       return cache.flags;
     }
 
@@ -227,7 +233,8 @@ class Swetrix {
     if (!forceRefresh &&
         cache != null &&
         cache.profileId == effectiveProfileId &&
-        DateTime.now().difference(cache.timestamp) < _defaultFeatureCacheDuration) {
+        DateTime.now().difference(cache.timestamp) <
+            _defaultFeatureCacheDuration) {
       return cache.experiments;
     }
 
@@ -384,15 +391,16 @@ class Swetrix {
 
     final uri = _resolve(path);
     try {
-      final response = await _send(uri, payload, requestOptions: requestOptions);
+      final response =
+          await _send(uri, payload, requestOptions: requestOptions);
       final statusCode = response.statusCode;
       if (statusCode == 403) {
         if (response.body.contains(
             'The heartbeat was not saved because there is no session for this request. Please, send a pageview or custom event request first to initialise the session.')) {
           throw Forbidden403HeartbeatSentBeforeEvent(response.body);
         }
-        if (response.body
-            .contains('The event was not saved because it was not unique while unique only param is provided')) {
+        if (response.body.contains(
+            'The event was not saved because it was not unique while unique only param is provided')) {
           // This error is usually returned when the unique parameter is set to true and the event is not unique,
           // i.e. the pageview event has already been recorded for this session.
           throw Forbidden403NotUnique(response.body);
@@ -507,7 +515,10 @@ class Swetrix {
     if (!_options.queueFailedRequests) {
       return false;
     }
-    return statusCode == 408 || statusCode == 425 || statusCode == 429 || statusCode >= 500;
+    return statusCode == 408 ||
+        statusCode == 425 ||
+        statusCode == 429 ||
+        statusCode >= 500;
   }
 
   bool _shouldQueueError(Object error) {
@@ -522,11 +533,13 @@ class Swetrix {
     Map<String, Object?> payload, {
     SwetrixRequestOptions? requestOptions,
   }) {
-    final effectiveRequestOptions = _options.requestOptions.merge(requestOptions);
+    final effectiveRequestOptions =
+        _options.requestOptions.merge(requestOptions);
     final headers = <String, String>{
       'Content-Type': 'application/json',
       ...effectiveRequestOptions.headers,
-      if (effectiveRequestOptions.userAgent != null) 'User-Agent': effectiveRequestOptions.userAgent!,
+      if (effectiveRequestOptions.userAgent != null)
+        'User-Agent': effectiveRequestOptions.userAgent!,
       if (effectiveRequestOptions.clientIpAddress != null)
         'X-Client-IP-Address': effectiveRequestOptions.clientIpAddress!,
     };
@@ -654,7 +667,8 @@ class Swetrix {
           result[entry.key] = nested;
         }
       } else if (value is Map<String, String>) {
-        final nested = value.map((key, nestedValue) => MapEntry(key, nestedValue));
+        final nested =
+            value.map((key, nestedValue) => MapEntry(key, nestedValue));
         if (nested.isNotEmpty) {
           result[entry.key] = nested;
         }
@@ -672,7 +686,8 @@ class Swetrix {
     if (overlay == null) {
       return base;
     }
-    final result = base == null ? <String, Object?>{} : Map<String, Object?>.from(base);
+    final result =
+        base == null ? <String, Object?>{} : Map<String, Object?>.from(base);
     overlay.forEach((key, value) {
       result[key] = value;
     });
@@ -681,18 +696,24 @@ class Swetrix {
 
   Map<String, String> _serialiseMeta(Map<String, Object?> meta) {
     if (meta.length > 100) {
-      throw ArgumentError.value(meta.length, 'meta.length', 'Metadata cannot contain more than 100 keys.');
+      throw ArgumentError.value(meta.length, 'meta.length',
+          'Metadata cannot contain more than 100 keys.');
     }
     var totalLength = 0;
     final result = <String, String>{};
     meta.forEach((key, value) {
-      if (value != null && value is! String && value is! num && value is! bool) {
-        throw ArgumentError.value(value, 'meta[$key]', 'Metadata values must be primitive types.');
+      if (value != null &&
+          value is! String &&
+          value is! num &&
+          value is! bool) {
+        throw ArgumentError.value(
+            value, 'meta[$key]', 'Metadata values must be primitive types.');
       }
       final stringValue = value == null ? 'null' : value.toString();
       totalLength += key.length + stringValue.length;
       if (totalLength > 2000) {
-        throw ArgumentError('Combined metadata length cannot exceed 2000 characters.');
+        throw ArgumentError(
+            'Combined metadata length cannot exceed 2000 characters.');
       }
       result[key] = stringValue;
     });

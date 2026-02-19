@@ -16,7 +16,9 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
   @override
   void initState() {
     super.initState();
-    widget.client.trackPageView(page: '/example/home').then((_) => _log('Tracked initial page view'));
+    widget.client
+        .trackPageView(page: '/example/home')
+        .then((_) => _log('Tracked initial page view'));
     widget.client.startHeartbeat();
   }
 
@@ -64,7 +66,8 @@ class _AnalyticsDemoPageState extends State<AnalyticsDemoPage> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  border:
+                      Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: _logs.isEmpty
                     ? const Center(child: Text('No events sent yet.'))
