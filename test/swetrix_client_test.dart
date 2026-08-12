@@ -150,6 +150,25 @@ void main() {
       await client.close();
     });
 
+    test('swallows heartbeat-before-session 403 without queueing', () async {
+      const heartbeatBody =
+          'The heartbeat was not saved because there is no session for this request. Please, send a pageview or custom event request first to initialise the session.';
+      final mockClient = MockClient((request) async {
+        return http.Response(heartbeatBody, 403);
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(queueFailedRequests: true),
+        httpClient: mockClient,
+      );
+
+      await expectLater(client.sendHeartbeat(), completes);
+      expect(client.pendingQueueLength, 0);
+
+      await client.close();
+    });
+
     test('throws when event name is invalid', () async {
       final client = Swetrix(projectId: 'PID');
       expect(

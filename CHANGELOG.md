@@ -6,6 +6,7 @@
 - Keep caller metadata on `trackError` and merge context metadata into custom events.
 - Compose `User-Agent` and `X-Client-IP-Address` for scheduled heartbeats (required for self-hosted / community edition attribution).
 - Do not queue CE `403` unique / heartbeat-before-session responses for retry.
+- Swallow CE heartbeat-before-session `403` so live-visitor pings cannot crash the app before a session exists.
 - Classify web user agents by specific tokens so empty Windows specifiers no longer match every UA.
 - Drop per-event `userAgent` debug prints.
 

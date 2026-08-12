@@ -171,7 +171,12 @@ class Swetrix {
       'pid': projectId,
       if (effectiveProfileId != null) 'profileId': effectiveProfileId,
     };
-    await _post('hb', payload, requestOptions: requestOptions);
+    try {
+      await _post('hb', payload, requestOptions: requestOptions);
+    } on Forbidden403HeartbeatSentBeforeEvent {
+      // Community edition rejects heartbeats until a pageview/event
+      // has created a session. The next interval retries.
+    }
   }
 
   /// Fetches all feature flags for the current project.

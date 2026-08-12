@@ -277,6 +277,28 @@ void main() {
       await client.close();
     });
 
+    test('startHeartbeat swallows heartbeat-before-session 403', () async {
+      const heartbeatBody =
+          'The heartbeat was not saved because there is no session for this request. Please, send a pageview or custom event request first to initialise the session.';
+      final mockClient = MockClient((request) async {
+        return http.Response(heartbeatBody, 403);
+      });
+
+      final client = SwetrixFlutterClient(
+        projectId: 'PIDHB403',
+        options: const SwetrixOptions(queueFailedRequests: true),
+        httpClient: mockClient,
+        clientIpResolver: () async => '198.51.100.1',
+      );
+
+      client.startHeartbeat(interval: const Duration(hours: 1));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(client.pendingQueueLength, 0);
+
+      await client.close();
+    });
+
     test('evaluates feature flags with resolved profileId and caches results',
         () async {
       final requests = <http.Request>[];
