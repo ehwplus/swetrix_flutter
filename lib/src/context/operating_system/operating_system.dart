@@ -20,13 +20,33 @@ enum OperatingSystem {
   final String specifierInsideUserAgent;
 
   static OperatingSystem? fromUserAgent(String? userAgent) {
-    for (final os in OperatingSystem.values) {
-      if (userAgent != null &&
-          userAgent
-              .toLowerCase()
-              .contains(os.specifierInsideUserAgent.toLowerCase())) {
-        return os;
-      }
+    if (userAgent == null || userAgent.isEmpty) {
+      return null;
+    }
+
+    final ua = userAgent.toLowerCase();
+    if (ua.contains('iphone')) {
+      return OperatingSystem.iOS;
+    }
+    if (ua.contains('ipad')) {
+      return OperatingSystem.iPadOS;
+    }
+    if (ua.contains('android')) {
+      return OperatingSystem.android;
+    }
+    if (ua.contains('cros')) {
+      return OperatingSystem.chromeOs;
+    }
+    if (ua.contains('windows') ||
+        ua.contains('win64') ||
+        ua.contains('win32')) {
+      return OperatingSystem.windows;
+    }
+    if (ua.contains('macintosh') || ua.contains('mac os')) {
+      return OperatingSystem.macOS;
+    }
+    if (ua.contains('linux') || ua.contains('x11')) {
+      return OperatingSystem.linux;
     }
     return null;
   }
@@ -40,7 +60,8 @@ enum OperatingSystem {
       if (value.toLowerCase() == os.osName.toLowerCase()) {
         return os;
       }
-      if (value.toLowerCase() == os.specifierInsideUserAgent.toLowerCase()) {
+      if (os.specifierInsideUserAgent.isNotEmpty &&
+          value.toLowerCase() == os.specifierInsideUserAgent.toLowerCase()) {
         return os;
       }
       if (value.toLowerCase() == os.name.toLowerCase()) {

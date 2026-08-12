@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -57,9 +56,6 @@ class SwetrixContextBuilder {
     final userAgent = await resolveUserAgent(
       packageInfo: packageInfo,
     );
-    if (kDebugMode) {
-      debugPrint('userAgent: $userAgent');
-    }
 
     return SwetrixFlutterEnvironment(
       context: swetrixContext,

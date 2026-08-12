@@ -1,3 +1,14 @@
+## 0.2.1
+
+- Honour per-call `profileId` and caller `metadata` on `SwetrixFlutterClient.trackPageView` / `trackEvent` (previously shadowed or dropped).
+- Mark only the first pageview as `unique`, matching the documented CE unique-visitor behaviour.
+- Attach device/app metadata to custom events, not only pageviews.
+- Keep caller metadata on `trackError` and merge context metadata into custom events.
+- Compose `User-Agent` and `X-Client-IP-Address` for scheduled heartbeats (required for self-hosted / community edition attribution).
+- Do not queue CE `403` unique / heartbeat-before-session responses for retry.
+- Classify web user agents by specific tokens so empty Windows specifiers no longer match every UA.
+- Drop per-event `userAgent` debug prints.
+
 ## 0.2.0
 
 - Add Swetrix v5 `profileId` support in `SwetrixOptions` and per-call overrides for pageviews, custom events, and heartbeats.

@@ -119,12 +119,15 @@ class Swetrix {
       if (effectiveProfileId != null) 'profileId': effectiveProfileId,
     };
 
+    Map<String, Object?>? mergedMetadata = metadata;
     if (effectiveContext != null) {
       payload.addAll(effectiveContext.toPayload());
+      mergedMetadata =
+          _mergeMetadata(effectiveContext.toPageMetadata(), mergedMetadata);
     }
 
-    if (metadata != null && metadata.isNotEmpty) {
-      payload['meta'] = _serialiseMeta(metadata);
+    if (mergedMetadata != null && mergedMetadata.isNotEmpty) {
+      payload['meta'] = _serialiseMeta(mergedMetadata);
     }
 
     await _post('custom', payload, requestOptions: requestOptions);
@@ -525,7 +528,12 @@ class Swetrix {
     if (!_options.queueFailedRequests) {
       return false;
     }
-    return error is! SwetrixException;
+    if (error is SwetrixException ||
+        error is Forbidden403NotUnique ||
+        error is Forbidden403HeartbeatSentBeforeEvent) {
+      return false;
+    }
+    return true;
   }
 
   Future<http.Response> _send(

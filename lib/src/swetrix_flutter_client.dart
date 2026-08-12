@@ -37,6 +37,8 @@ class SwetrixFlutterClient {
   String? _userAgent;
   String? _clientIpAddress;
   Future<String?>? _clientIpFuture;
+  bool _hasTrackedPageView = false;
+  int _heartbeatGeneration = 0;
 
   SwetrixOptions get options => _swetrix.options;
 
@@ -46,7 +48,10 @@ class SwetrixFlutterClient {
 
   String get projectId => _projectId;
 
-  Future<void> reset() => _visitorStore.reset(projectId);
+  Future<void> reset() async {
+    _hasTrackedPageView = false;
+    await _visitorStore.reset(projectId);
+  }
 
   Future<String> _resolveVisitorId() =>
       _visitorStore.ensureVisitorId(projectId);
@@ -60,23 +65,36 @@ class SwetrixFlutterClient {
     SwetrixPerformanceMetrics? performanceMetrics,
     SwetrixRequestOptions? requestOptions,
   }) async {
-    final environment = await SwetrixContextBuilder.build();
-    _userAgent ??= environment.userAgent;
+    final unique = !_hasTrackedPageView;
+    _hasTrackedPageView = true;
+    try {
+      final environment = await SwetrixContextBuilder.build();
+      _userAgent ??= environment.userAgent;
 
-    final contextWithEnvironment = _mergeContext(environment.context, context);
-    final profileId = await _resolveVisitorId();
-    final metaData = environment.context.metadata;
-    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+      final contextWithEnvironment =
+          _mergeContext(environment.context, context);
+      final resolvedProfileId = await _resolveProfileId(profileId);
+      final resolvedRequestOptions =
+          await _composeRequestOptions(requestOptions);
 
-    await _swetrix.trackPageView(
-      page: page,
-      profileId: profileId,
-      locale: locale?.toLanguageTag() ?? context?.locale,
-      context: contextWithEnvironment,
-      metadata: metaData,
-      performanceMetrics: performanceMetrics,
-      requestOptions: resolvedRequestOptions,
-    );
+      await _swetrix.trackPageView(
+        page: page,
+        unique: unique,
+        profileId: resolvedProfileId,
+        locale: locale?.toLanguageTag() ?? contextWithEnvironment.locale,
+        context: contextWithEnvironment,
+        metadata: metadata,
+        performanceMetrics: performanceMetrics,
+        requestOptions: resolvedRequestOptions,
+      );
+    } on Forbidden403NotUnique {
+      // First unique pageview already recorded for this visitor.
+    } catch (_) {
+      if (unique) {
+        _hasTrackedPageView = false;
+      }
+      rethrow;
+    }
   }
 
   /// If [unique] is true, make sure the event is just sent once.
@@ -95,15 +113,15 @@ class SwetrixFlutterClient {
     _userAgent ??= environment.userAgent;
 
     final contextWithEnvironment = _mergeContext(environment.context, context);
-    final profileId = await _resolveVisitorId();
+    final resolvedProfileId = await _resolveProfileId(profileId);
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     await _swetrix.trackEvent(
       eventName,
       unique: unique,
       page: page,
-      profileId: profileId,
-      locale: locale?.toLanguageTag() ?? context?.locale,
+      profileId: resolvedProfileId,
+      locale: locale?.toLanguageTag() ?? contextWithEnvironment.locale,
       context: contextWithEnvironment,
       metadata: metadata,
       requestOptions: resolvedRequestOptions,
@@ -119,7 +137,6 @@ class SwetrixFlutterClient {
     _userAgent ??= environment.userAgent;
 
     final contextWithEnvironment = _mergeContext(environment.context, context);
-    final metadata = environment.context.metadata;
     final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
 
     final decoratedError = SwetrixErrorEvent(
@@ -132,7 +149,7 @@ class SwetrixFlutterClient {
       page: error.page,
       timezone: error.timezone ?? contextWithEnvironment.timezone,
       locale: error.locale ?? contextWithEnvironment.locale,
-      metadata: metadata,
+      metadata: _mergeMetadata(contextWithEnvironment.metadata, error.metadata),
     );
 
     await _swetrix.trackError(
@@ -158,16 +175,43 @@ class SwetrixFlutterClient {
     Duration interval = const Duration(seconds: 30),
     String? profileId,
     SwetrixRequestOptions? requestOptions,
-  }) =>
-      _swetrix.startHeartbeat(
-        interval: interval,
-        profileId: profileId ?? options.profileId,
-        requestOptions: requestOptions,
-      );
+  }) {
+    final generation = ++_heartbeatGeneration;
+    unawaited(_startHeartbeat(
+      interval: interval,
+      profileId: profileId,
+      requestOptions: requestOptions,
+      generation: generation,
+    ));
+  }
 
-  void stopHeartbeat() => _swetrix.stopHeartbeat();
+  Future<void> _startHeartbeat({
+    required Duration interval,
+    required int generation,
+    String? profileId,
+    SwetrixRequestOptions? requestOptions,
+  }) async {
+    final resolvedProfileId = await _resolveProfileId(profileId);
+    final resolvedRequestOptions = await _composeRequestOptions(requestOptions);
+    if (generation != _heartbeatGeneration) {
+      return;
+    }
+    _swetrix.startHeartbeat(
+      interval: interval,
+      profileId: resolvedProfileId,
+      requestOptions: resolvedRequestOptions,
+    );
+  }
 
-  Future<void> close() => _swetrix.close();
+  void stopHeartbeat() {
+    _heartbeatGeneration++;
+    _swetrix.stopHeartbeat();
+  }
+
+  Future<void> close() {
+    stopHeartbeat();
+    return _swetrix.close();
+  }
 
   Future<Map<String, bool>> getFeatureFlags({
     String? profileId,
@@ -247,6 +291,19 @@ class SwetrixFlutterClient {
       return generated;
     }
     return generated.merge(override);
+  }
+
+  Map<String, Object?>? _mergeMetadata(
+    Map<String, Object?>? base,
+    Map<String, Object?>? overlay,
+  ) {
+    if (overlay == null || overlay.isEmpty) {
+      return base;
+    }
+    if (base == null || base.isEmpty) {
+      return Map<String, Object?>.from(overlay);
+    }
+    return <String, Object?>{...base, ...overlay};
   }
 
   Future<String> _resolveProfileId(
@@ -339,10 +396,13 @@ class SwetrixFlutterClient {
     return null;
   }
 
+  static const Duration _defaultClientIpTimeout = Duration(milliseconds: 1500);
+
   static Future<String?> _defaultClientIpResolver() async {
     try {
-      final response =
-          await http.get(Uri.parse('https://api.ipify.org?format=text'));
+      final response = await http
+          .get(Uri.parse('https://api.ipify.org?format=text'))
+          .timeout(_defaultClientIpTimeout);
       if (response.statusCode == 200) {
         final ip = response.body.trim();
         if (ip.isNotEmpty) {

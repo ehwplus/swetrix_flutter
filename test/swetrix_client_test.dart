@@ -98,6 +98,58 @@ void main() {
       await client.close();
     });
 
+    test('merges context metadata into custom events', () async {
+      late http.Request capturedRequest;
+      final mockClient = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response('{}', 201);
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(
+          defaultContext: SwetrixContext(metadata: {'os': 'iOS'}),
+        ),
+        httpClient: mockClient,
+      );
+
+      await client.trackEvent(
+        'Purchase',
+        context: const SwetrixContext(metadata: {'plan': 'pro'}),
+        metadata: const {'amount': 9.99},
+      );
+
+      final body = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
+      expect(
+        body['meta'],
+        equals({'os': 'iOS', 'plan': 'pro', 'amount': '9.99'}),
+      );
+
+      await client.close();
+    });
+
+    test('does not queue unique 403 responses', () async {
+      const uniqueBody =
+          'The event was not saved because it was not unique while unique only param is provided';
+      final mockClient = MockClient((request) async {
+        return http.Response(uniqueBody, 403);
+      });
+
+      final client = Swetrix(
+        projectId: 'PID123',
+        options: const SwetrixOptions(queueFailedRequests: true),
+        httpClient: mockClient,
+      );
+
+      await expectLater(
+        client.trackPageView(page: '/home', unique: true),
+        throwsA(isA<Forbidden403NotUnique>()),
+      );
+      expect(client.pendingQueueLength, 0);
+
+      await client.close();
+    });
+
     test('throws when event name is invalid', () async {
       final client = Swetrix(projectId: 'PID');
       expect(

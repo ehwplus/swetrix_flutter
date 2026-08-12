@@ -49,7 +49,7 @@ import 'package:swetrix_flutter/swetrix_flutter.dart';
 final swetrix = SwetrixFlutterClient(
   projectId: 'YOUR_PROJECT_ID',
   options: SwetrixOptions(
-    apiUrl: Uri.parse('https://analytics.api.ehwplus.com/log'),
+    apiUrl: Uri.parse('https://analytics.ehwplus.com/backend/log'),
     // Optional: map to your internal account/user ID for MAU tracking.
     profileId: 'user_123',
   ),
@@ -101,7 +101,7 @@ Without `network.client`, requests can fail with `SocketException: Operation not
 
 ## Advanced usage
 
-- **Self-hosted API** – Override the endpoint via `SwetrixOptions(apiUrl: Uri.parse('https://your-host/log'))`.
+- **Self-hosted / community edition** – Override the endpoint via `SwetrixOptions(apiUrl: Uri.parse('https://your-host/backend/log'))`. Feature flags and experiments are available on self-hosted CE without a cloud plan; evaluation soft-fails to empty results if the endpoint is unreachable.
 - **MAU / User identity** – Set `SwetrixOptions(profileId: 'user_123')` globally, or pass `profileId` directly to `trackPageView`, `trackEvent`, and `sendHeartbeat`.
 - **Additional metadata** – Supply `context` or `metadata` overrides when calling `trackPageView` / `trackEvent` to extend the automatically collected fields.
 - **Heartbeats** – Use `startHeartbeat()` / `stopHeartbeat()` to keep live visitor counters fresh.
