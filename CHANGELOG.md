@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Fix error handling: Do not queue Forbidden403NotUnique and Forbidden403HeartbeatSentBeforeEvent
+
 ## 0.2.0
 
 - Add Swetrix v5 `profileId` support in `SwetrixOptions` and per-call overrides for pageviews, custom events, and heartbeats.

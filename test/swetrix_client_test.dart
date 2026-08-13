@@ -313,5 +313,41 @@ void main() {
 
       await client.close();
     });
+
+    test('throws and does not queue an unrecognised 403 response', () async {
+      final client = Swetrix(
+        projectId: 'PID',
+        httpClient: MockClient(
+          (_) async => http.Response('project disabled', 403),
+        ),
+      );
+
+      await expectLater(
+        client.trackEvent('Purchase'),
+        throwsA(isA<SwetrixException>()
+            .having((e) => e.statusCode, 'status', 403)
+            .having((e) => e.body, 'body', 'project disabled')),
+      );
+      expect(client.pendingQueueLength, 0);
+
+      await client.close();
+    });
+
+    test('does not queue a recognised not-unique 403 response', () async {
+      const responseBody =
+          'The event was not saved because it was not unique while unique only param is provided';
+      final client = Swetrix(
+        projectId: 'PID',
+        httpClient: MockClient((_) async => http.Response(responseBody, 403)),
+      );
+
+      await expectLater(
+        client.trackEvent('Purchase', unique: true),
+        throwsA(isA<Forbidden403NotUnique>()),
+      );
+      expect(client.pendingQueueLength, 0);
+
+      await client.close();
+    });
   });
 }

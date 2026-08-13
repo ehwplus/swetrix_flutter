@@ -83,7 +83,7 @@ The `SwetrixFlutterClient` automatically:
 - Collects OS, OS version, device classification (mobile/tablet/desktop), language, country and—on web builds—the active browser name.
 - Pulls the app version and build number via `package_info_plus`.
 - Persists a per-project visitor identifier in `SharedPreferences` so every user counts only once.
-- Adds the visitor ID and device metadata to all page views, events, and error payloads, while marking the first page view as `unique`.
+- Adds the visitor ID and device metadata to all page views, events, and error payloads.
 - Uses `profileId` for all pageviews/events/heartbeats. If no global/profile override is set, it falls back to the persisted visitor ID.
 
 > **Important:** When using the lower-level `Swetrix` client directly you must provide accurate `User-Agent` and `X-Client-IP-Address` headers yourself to keep unique visitor metrics meaningful. See the [Events API reference](https://docs.swetrix.com/events-api) for full details.

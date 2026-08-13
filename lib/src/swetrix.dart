@@ -525,7 +525,9 @@ class Swetrix {
     if (!_options.queueFailedRequests) {
       return false;
     }
-    return error is! SwetrixException;
+    return error is! SwetrixException &&
+        error is! Forbidden403NotUnique &&
+        error is! Forbidden403HeartbeatSentBeforeEvent;
   }
 
   Future<http.Response> _send(
